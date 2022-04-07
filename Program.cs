@@ -11,7 +11,11 @@ namespace RefreshNorthcrestDataFromPlanningCenter
             Console.WriteLine("Press any key to begin the data retieval process.");
             Console.ReadLine();
 
-            string planningCenterWebsite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans/2450442/items";
+            //string planningCenterWebsite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans/2450442/items";
+            string planningCenterWebsite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans";
+            // https://api.planningcenteronline.com/services/v2/service_types/107395/plans = Sunday morning plans
+            // https://api.planningcenteronline.com/services/v2/service_types/107396/plans = Sunday evening plans
+            // https://api.planningcenteronline.com/services/v2/service_types/107397/plans = Special Service plans
 
             using (var client = new HttpClient())
             {
