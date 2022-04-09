@@ -1,4 +1,7 @@
-﻿using System;
+﻿using RefreshNorthcrestDataFromPlanningCenter.Models;
+using RefreshNorthcrestDataFromPlanningCenter.Models.Interfaces;
+using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
@@ -13,9 +16,12 @@ namespace RefreshNorthcrestDataFromPlanningCenter
 
             //string planningCenterWebsite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans/2450442/items";
             string planningCenterWebsite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans";
-            // https://api.planningcenteronline.com/services/v2/service_types/107395/plans = Sunday morning plans
-            // https://api.planningcenteronline.com/services/v2/service_types/107396/plans = Sunday evening plans
-            // https://api.planningcenteronline.com/services/v2/service_types/107397/plans = Special Service plans
+        // https://api.planningcenteronline.com/services/v2/service_types/107395/plans = Sunday morning plans
+        // https://api.planningcenteronline.com/services/v2/service_types/107396/plans = Sunday evening plans
+        // https://api.planningcenteronline.com/services/v2/service_types/107397/plans = Special Service plans
+        // How to navigate pages - current limit 100 per page per 20 seconds.
+        // https://api.planningcenteronline.com/services/v2/service_types/107397/plans?offset=100&per_page=100
+
 
             using (var client = new HttpClient())
             {
@@ -35,12 +41,25 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                 if (result.IsSuccessStatusCode)
                 {
                     Console.WriteLine("Success!");
+                    int rateLimit;
+                    int ratePeriod;
+                    int parseResult;
+                    bool parseSuccess;
+                    parseSuccess = int.TryParse(result.Headers.GetValues("X-PCO-API-Request-Rate-Limit").FirstOrDefault(), out parseResult);
+                    rateLimit = parseSuccess ? parseResult : 100;
+                    parseSuccess = int.TryParse(result.Headers.GetValues("X-PCO-API-Request-Rate-Period").FirstOrDefault(), out parseResult);
+                    ratePeriod = parseSuccess ? parseResult : 20;
 
                     var readTask = result.Content.ReadAsStringAsync();
                     readTask.Wait();
 
-                    var planningCenterResults = readTask.Result;
+                    //var header = "Header: " + result.Headers.ToString();
+                    string planningCenterResults = readTask.Result;
 
+
+                    // To implement deserialization using the interfaces, see this solution.  It's not necessary, so
+                    // I skipped it.  https://stackoverflow.com/questions/50613560/how-to-deserialize-interfaces-with-newtonsoft-json-net
+                    Plans plans = Newtonsoft.Json.JsonConvert.DeserializeObject<Plans>(planningCenterResults);
                     Console.WriteLine(planningCenterResults);
                 }
                 else
@@ -50,5 +69,30 @@ namespace RefreshNorthcrestDataFromPlanningCenter
             }
             Console.ReadLine();
         }
+
+        //private PersonIdentityResponseItem GetPersonFromMM_DMDC_IWS(string edipi, string indNMilEmplCd = null, string dodServiceComponentCode = null)
+        //{
+        //    IDmdcRequest dmdcRequest = _dmdcRequestFactory.CreateDmdcRequest(edipi, indNMilEmplCd, dodServiceComponentCode);
+
+        //    string mmWebServicesDMDCIWSwebsite =
+        //        NetworkConstants.HTTPS + NetworkHelper.WebServicesDMDCIWSHostName +
+        //        NetworkConstants.WEB_SERVICES_DMDC_IWS_URI + NetworkConstants.WEB_SERVICES_DMDC_IWS_GET_PERSON_BY;
+
+        //    string jsonDmdcRequest = System.Text.Json.JsonSerializer.Serialize(dmdcRequest);
+        //    X509Certificate2 certificate = GetCertificate();
+        //    HttpClientHandler handler = new();
+        //    handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+        //    handler.ClientCertificates.Add(certificate);
+
+        //    HttpClient request = new(handler);
+        //    StringContent content = new(jsonDmdcRequest);
+        //    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+        //    var response = request.PostAsync(mmWebServicesDMDCIWSwebsite, content).Result;
+        //    string responseString = response.Content.ReadAsStringAsync().Result;
+        //    PersonIdentityResponseItem results = Newtonsoft.Json.JsonConvert.DeserializeObject<PersonIdentityResponseItem>(responseString);
+
+        //    return results;
+        //}
     }
 }
