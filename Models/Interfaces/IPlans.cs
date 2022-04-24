@@ -9,6 +9,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Models.Interfaces
     public interface IPlans
     {
         IPlan[] data { get; set; }
-        IPlansMeta[] meta { get; set; }
+        IPlansMeta meta { get; set; }
     }
 }
