@@ -5,6 +5,7 @@ using RefreshNorthcrestDataFromPlanningCenter.Models;
 using RefreshNorthcrestDataFromPlanningCenter.Models.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -15,8 +16,19 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
     {
         private readonly ILogger<RetrievePlanningCenterDataService> _log;
         private readonly IConfiguration _config;
+        int rateLimit;
+        int totalRecordsAvailable;
+        int remainingRecords;
+        int offSet = 0;
+        int ratePeriod;
+        int parseResult;
+        bool parseSuccess;
+        Plans currentRetrievedPlans;
+        Plans allRetrievedPlans;
 
-        public RetrievePlanningCenterDataService(ILogger<RetrievePlanningCenterDataService> log, IConfiguration config)
+        public RetrievePlanningCenterDataService(
+            ILogger<RetrievePlanningCenterDataService> log, 
+            IConfiguration config)
         {
             _log = log;
             _config = config;
@@ -28,7 +40,8 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             _log.LogInformation("Starting data refresh.");
 
             //string planningCenterWebsite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans/2450442/items";
-            string planningCenterWebsite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans";
+            string planningCenterWebsiteIntial = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans";
+            string planningCenterSundayMorningPlans;
             // https://api.planningcenteronline.com/services/v2/service_types/107395/plans = Sunday morning plans
             // https://api.planningcenteronline.com/services/v2/service_types/107396/plans = Sunday evening plans
             // https://api.planningcenteronline.com/services/v2/service_types/107397/plans = Special Service plans
@@ -48,51 +61,91 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
 
 
-                var responseTask = client.GetAsync(planningCenterWebsite);
+                var responseTask = client.GetAsync(planningCenterWebsiteIntial);
                 responseTask.Wait();
 
                 var result = responseTask.Result;
                 if (result.IsSuccessStatusCode)
                 {
                     Console.WriteLine("Success!");
-                    int rateLimit;
-                    int ratePeriod;
-                    int parseResult;
-                    bool parseSuccess;
+                    
                     parseSuccess = int.TryParse(result.Headers.GetValues("X-PCO-API-Request-Rate-Limit").FirstOrDefault(), out parseResult);
                     rateLimit = parseSuccess ? parseResult : 100;
                     _log.LogInformation("Retrieved rate limit. {rateLimit}", rateLimit);
                     parseSuccess = int.TryParse(result.Headers.GetValues("X-PCO-API-Request-Rate-Period").FirstOrDefault(), out parseResult);
                     ratePeriod = parseSuccess ? parseResult : 20;
                     _log.LogInformation("Retrieved rate period. {ratePeriod}", ratePeriod);
-
-                    var readTask = result.Content.ReadAsStringAsync();
-                    readTask.Wait();
+                    var readPlanForTotalCounhTask = result.Content.ReadAsStringAsync();
+                    readPlanForTotalCounhTask.Wait();
 
                     //var header = "Header: " + result.Headers.ToString();
-                    string planningCenterResults = readTask.Result;
+                    string firstResults = readPlanForTotalCounhTask.Result;
 
-
-                    // To implement deserialization using the interfaces, see this solution.  It's not necessary, so
-                    // I skipped it.  https://stackoverflow.com/questions/50613560/how-to-deserialize-interfaces-with-newtonsoft-json-net
-
-                    Plans plans = JsonConvert.DeserializeObject<Plans>(planningCenterResults);
-                    _log.LogInformation("Total plans available. {totalPlansAvailable}", plans.meta.total_count);
-                    foreach (Plan plan in plans.data)
-                    {
-                        _log.LogInformation("Plan ID. {planID}", plan.id);
-                    }
-
-
-                    //Console.WriteLine(planningCenterResults);
+                    currentRetrievedPlans = JsonConvert.DeserializeObject<Plans>(firstResults);
+                    totalRecordsAvailable = currentRetrievedPlans.meta.total_count;
+                    remainingRecords = currentRetrievedPlans.meta.total_count;
+                    _log.LogInformation("Total plans available. {totalPlansAvailable}", currentRetrievedPlans.meta.total_count);
                 }
                 else
                 {
-                    Console.WriteLine("Failure!");
+                    _log.LogError("There was an error accessing the website initially: {error}", result.ReasonPhrase);
                 }
+                allRetrievedPlans = new Plans();
+                List<int> planIDs = new List<int>();
+                while (remainingRecords > 0)
+                { 
+                    planningCenterSundayMorningPlans = $"https://api.planningcenteronline.com/services/v2/service_types/107395/plans?offset={offSet}&per_page={rateLimit}";
+                    _log.LogInformation("Remaining records: {remainingRecords}", remainingRecords);
+                    _log.LogInformation("Current offset: {offSet}", offSet);
+                    _log.LogInformation("Total records retrieved: {currentReceivedRecordCoun}", planIDs.Count);
+                    _log.LogInformation("calling this website now:{url}", planningCenterSundayMorningPlans);
+                    
+                    responseTask = client.GetAsync(planningCenterSundayMorningPlans);
+
+                    responseTask.Wait();
+
+                    result = responseTask.Result;
+
+                    if (result.IsSuccessStatusCode)
+                    {
+                        var readTask = result.Content.ReadAsStringAsync();
+                        readTask.Wait();
+
+                        //var header = "Header: " + result.Headers.ToString();
+                        string planningCenterResults = readTask.Result;
+
+                        currentRetrievedPlans = JsonConvert.DeserializeObject<Plans>(planningCenterResults);
+
+                        _log.LogInformation("Total plans available. {totalPlansAvailable}", currentRetrievedPlans.meta.total_count);
+                        foreach (Plan plan in currentRetrievedPlans.data)
+                        {
+                            _log.LogInformation("Plan ID. {planID}", plan.id);
+                            planIDs.Add(plan.id);
+                        }
+                        remainingRecords = remainingRecords - rateLimit;
+                        offSet = offSet + rateLimit;
+                    }
+                    else
+                    {
+                        _log.LogError("There was an error accessing the website retrieving the data {error}", result.ReasonPhrase);
+                        break;
+
+                    }
+                }
+
+                _log.LogInformation("Complete List of Plan IDs:");
+                foreach(int number in planIDs)
+                {
+                    Console.Write($"{number} ");
+                }
+                
+
+                
             }
             Console.ReadLine();
         }
+
+        
 
     }
 }

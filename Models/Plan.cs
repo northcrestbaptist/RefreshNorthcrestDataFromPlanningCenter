@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Models.Interfaces
 {
-    public interface IPlansMeta
+    public class Plan
     {
-        int total_count { get; set; }
-        int count { get; set; }
+        public int id { get; set; }
     }
 }

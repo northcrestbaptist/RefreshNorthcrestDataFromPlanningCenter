@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Models
 {
-    public class PlansMeta : IPlansMeta
+    public class PlansMeta
     {
         public int total_count { get; set; }
         public int count { get; set; }

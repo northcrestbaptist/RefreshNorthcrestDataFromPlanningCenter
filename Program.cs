@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RefreshNorthcrestDataFromPlanningCenter.Models;
+using RefreshNorthcrestDataFromPlanningCenter.Models.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Services;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using Serilog;
