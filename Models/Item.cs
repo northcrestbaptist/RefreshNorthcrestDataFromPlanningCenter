@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RefreshNorthcrestDataFromPlanningCenter.Models.Interfaces
+namespace RefreshNorthcrestDataFromPlanningCenter.Models
 {
-    public class Plan
+    public class Item
     {
         public int id { get; set; }
-        public PlanAttributes attributes { get; set; }
+        public ItemAttributes attributes { get; set; }
+    
     }
 }

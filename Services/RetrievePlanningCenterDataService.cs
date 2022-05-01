@@ -24,7 +24,8 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         int parseResult;
         bool parseSuccess;
         Plans currentRetrievedPlans;
-        Plans allRetrievedPlans;
+        Plans allRetrievedPlansWithSermonText;
+        Plan currentPlan;
 
         public RetrievePlanningCenterDataService(
             ILogger<RetrievePlanningCenterDataService> log, 
@@ -40,8 +41,10 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             _log.LogInformation("Starting data refresh.");
 
             //string planningCenterWebsite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans/2450442/items";
-            string planningCenterWebsiteIntial = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans";
-            string planningCenterSundayMorningPlans;
+            string getSpecificSundayPlanBaseSite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans";
+            string getSpecificSundayPlan;
+            string getAllSundayMorningPlansbaseSite = "https://api.planningcenteronline.com/services/v2/service_types/107395/plans";
+            string getAllSundayMorningPlansByPage;
             // https://api.planningcenteronline.com/services/v2/service_types/107395/plans = Sunday morning plans
             // https://api.planningcenteronline.com/services/v2/service_types/107396/plans = Sunday evening plans
             // https://api.planningcenteronline.com/services/v2/service_types/107397/plans = Special Service plans
@@ -61,7 +64,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
 
 
-                var responseTask = client.GetAsync(planningCenterWebsiteIntial);
+                var responseTask = client.GetAsync(getAllSundayMorningPlansbaseSite);
                 responseTask.Wait();
 
                 var result = responseTask.Result;
@@ -90,17 +93,17 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 {
                     _log.LogError("There was an error accessing the website initially: {error}", result.ReasonPhrase);
                 }
-                allRetrievedPlans = new Plans();
+                allRetrievedPlansWithSermonText = new Plans();
                 List<int> planIDs = new List<int>();
                 while (remainingRecords > 0)
                 { 
-                    planningCenterSundayMorningPlans = $"https://api.planningcenteronline.com/services/v2/service_types/107395/plans?offset={offSet}&per_page={rateLimit}";
+                    getAllSundayMorningPlansByPage = $"{getAllSundayMorningPlansbaseSite}?offset={offSet}&per_page={rateLimit}";
                     _log.LogInformation("Remaining records: {remainingRecords}", remainingRecords);
                     _log.LogInformation("Current offset: {offSet}", offSet);
                     _log.LogInformation("Total records retrieved: {currentReceivedRecordCoun}", planIDs.Count);
-                    _log.LogInformation("calling this website now:{url}", planningCenterSundayMorningPlans);
+                    _log.LogInformation("calling this website now:{url}", getAllSundayMorningPlansByPage);
                     
-                    responseTask = client.GetAsync(planningCenterSundayMorningPlans);
+                    responseTask = client.GetAsync(getAllSundayMorningPlansByPage);
 
                     responseTask.Wait();
 
@@ -119,8 +122,49 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                         _log.LogInformation("Total plans available. {totalPlansAvailable}", currentRetrievedPlans.meta.total_count);
                         foreach (Plan plan in currentRetrievedPlans.data)
                         {
-                            _log.LogInformation("Plan ID. {planID}", plan.id);
-                            planIDs.Add(plan.id);
+                            _log.LogInformation("Retrieving items for: {planID}", plan.id);
+                            getSpecificSundayPlan = $"{getSpecificSundayPlanBaseSite}/{plan.id}/items";
+                            responseTask = client.GetAsync(getSpecificSundayPlan);
+
+                            responseTask.Wait();
+
+                            result = responseTask.Result;
+
+                            if (result.IsSuccessStatusCode)
+                            {
+                                var readItemsTask = result.Content.ReadAsStringAsync();
+                                readTask.Wait();
+
+                                //var header = "Header: " + result.Headers.ToString();
+                                string planItemResults = readItemsTask.Result;
+
+                                Items items = JsonConvert.DeserializeObject<Items>(planItemResults);
+                                foreach(Item item in items.data)
+                                {
+                                    if (item.attributes.title.ToLower().Contains("sermon"))
+                                    {
+                                        _log.LogInformation("Service Date: {serviceDate}", plan.attributes.sort_date);
+                                        _log.LogInformation("Series Title: {seriesTitle}", plan.attributes.series_title);
+                                        _log.LogInformation("Number of Items from Plan: {numberOfItems}", plan.attributes.items_count);
+                                        _log.LogInformation("Sermon Title: {sermonTitle}", item.attributes.title);
+                                        _log.LogInformation("Sermon Description: {sermonDescription}", item.attributes.description);
+                                    }
+                                    else
+                                    {
+                                        _log.LogInformation("No item was found with the word: sermon.");
+                                    }
+                                }
+
+                            }
+                            else
+                            {
+                                _log.LogError("There was an error accessing the website retrieving the data {error}", result.ReasonPhrase);
+                            }
+                            if (plan.attributes.multi_day)
+                            {
+                                planIDs.Add(plan.id);
+                            }
+
                         }
                         remainingRecords = remainingRecords - rateLimit;
                         offSet = offSet + rateLimit;
@@ -131,6 +175,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                         break;
 
                     }
+                    //break;
                 }
 
                 _log.LogInformation("Complete List of Plan IDs:");
@@ -138,9 +183,31 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 {
                     Console.Write($"{number} ");
                 }
-                
 
-                
+                //getSpecificSundayPlan = $"{getSpecificSundayPlanBaseSite}/{planIDs.ElementAt(580)}/items";
+                //responseTask = client.GetAsync(getSpecificSundayPlan);
+
+                //responseTask.Wait();
+
+                //result = responseTask.Result;
+
+                //if (result.IsSuccessStatusCode)
+                //{
+                //    var readTask = result.Content.ReadAsStringAsync();
+                //    readTask.Wait();
+
+                //    //var header = "Header: " + result.Headers.ToString();
+                //    string planningCenterResults = readTask.Result;
+                //    _log.LogInformation("Retrieved this plan: {planningCenterResults}", planningCenterResults);
+                //    //currentPlan = JsonConvert.DeserializeObject<Plan>(planningCenterResults);
+
+                //}
+                //else
+                //{
+                //    _log.LogError("There was an error accessing the website retrieving the data {error}", result.ReasonPhrase);
+                //}
+
+
             }
             Console.ReadLine();
         }
