@@ -20,8 +20,9 @@ namespace RefreshNorthcrestDataFromPlanningCenter
 
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(builder.Build()).Enrich
-                .FromLogContext().
-                WriteTo.Console()
+                .FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File("C:\\logs\\log.txt", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
             Log.Logger.Information("Application Starting");

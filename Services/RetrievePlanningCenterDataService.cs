@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Services
 {
@@ -17,6 +19,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         private readonly ILogger<RetrievePlanningCenterDataService> _log;
         private readonly IConfiguration _config;
         int rateLimit;
+        int numberOfRequests;
         int totalRecordsAvailable;
         int remainingRecords;
         int offSet = 0;
@@ -34,7 +37,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             _log = log;
             _config = config;
         }
-        public void Run()
+        public async void Run()
         {
             //Console.WriteLine("Press any key to begin the data retieval process.");
             //Console.ReadLine();
@@ -65,6 +68,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
 
                 var responseTask = client.GetAsync(getAllSundayMorningPlansbaseSite);
+                numberOfRequests++;
                 responseTask.Wait();
 
                 var result = responseTask.Result;
@@ -96,86 +100,109 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 allRetrievedPlansWithSermonText = new Plans();
                 List<int> planIDs = new List<int>();
                 while (remainingRecords > 0)
-                { 
-                    getAllSundayMorningPlansByPage = $"{getAllSundayMorningPlansbaseSite}?offset={offSet}&per_page={rateLimit}";
-                    _log.LogInformation("Remaining records: {remainingRecords}", remainingRecords);
-                    _log.LogInformation("Current offset: {offSet}", offSet);
-                    _log.LogInformation("Total records retrieved: {currentReceivedRecordCoun}", planIDs.Count);
-                    _log.LogInformation("calling this website now:{url}", getAllSundayMorningPlansByPage);
-                    
-                    responseTask = client.GetAsync(getAllSundayMorningPlansByPage);
+                {
+                    //if(remainingRecords > rateLimit - 5)
+                    //{
+                    //    await Task.Delay(ratePeriod * 1000);
+                    //    numberOfRequests = 0;
+                    //}
+                    //else
+                    //{
+                        //await Task.Delay(1000);
+                        getAllSundayMorningPlansByPage = $"{getAllSundayMorningPlansbaseSite}?offset={offSet}&per_page={rateLimit}";
+                        _log.LogInformation("Remaining Planning Center plans: {remainingRecords}", remainingRecords);
+                        _log.LogInformation("Current offset: {offSet}", offSet);
+                        _log.LogInformation("Total Planning Center plans retrieved: {currentReceivedRecordCoun}", planIDs.Count);
+                        _log.LogInformation("calling this website now:{url}", getAllSundayMorningPlansByPage);
+                        numberOfRequests++;
+                        responseTask = client.GetAsync(getAllSundayMorningPlansByPage);
+                        numberOfRequests++;
+                        responseTask.Wait();
 
-                    responseTask.Wait();
+                        result = responseTask.Result;
 
-                    result = responseTask.Result;
-
-                    if (result.IsSuccessStatusCode)
-                    {
-                        var readTask = result.Content.ReadAsStringAsync();
-                        readTask.Wait();
-
-                        //var header = "Header: " + result.Headers.ToString();
-                        string planningCenterResults = readTask.Result;
-
-                        currentRetrievedPlans = JsonConvert.DeserializeObject<Plans>(planningCenterResults);
-
-                        _log.LogInformation("Total plans available. {totalPlansAvailable}", currentRetrievedPlans.meta.total_count);
-                        foreach (Plan plan in currentRetrievedPlans.data)
+                        if (result.IsSuccessStatusCode)
                         {
-                            _log.LogInformation("Retrieving items for: {planID}", plan.id);
-                            getSpecificSundayPlan = $"{getSpecificSundayPlanBaseSite}/{plan.id}/items";
-                            responseTask = client.GetAsync(getSpecificSundayPlan);
 
-                            responseTask.Wait();
+                            var readTask = result.Content.ReadAsStringAsync();
+                            readTask.Wait();
 
-                            result = responseTask.Result;
+                            //var header = "Header: " + result.Headers.ToString();
+                            string planningCenterResults = readTask.Result;
 
-                            if (result.IsSuccessStatusCode)
+                            currentRetrievedPlans = JsonConvert.DeserializeObject<Plans>(planningCenterResults);
+
+                            _log.LogInformation("Total plans available. {totalPlansAvailable}", currentRetrievedPlans.meta.total_count);
+                            foreach (Plan plan in currentRetrievedPlans.data)
                             {
-                                var readItemsTask = result.Content.ReadAsStringAsync();
-                                readTask.Wait();
+                                planIDs.Add(plan.id);
+                                _log.LogInformation("Retrieving items for: {planID}", plan.id);
+                                getSpecificSundayPlan = $"{getSpecificSundayPlanBaseSite}/{plan.id}/items";
+                                responseTask = client.GetAsync(getSpecificSundayPlan);
+                                numberOfRequests++;
+                                responseTask.Wait();
 
-                                //var header = "Header: " + result.Headers.ToString();
-                                string planItemResults = readItemsTask.Result;
+                                result = responseTask.Result;
 
-                                Items items = JsonConvert.DeserializeObject<Items>(planItemResults);
-                                foreach(Item item in items.data)
+                                if (result.IsSuccessStatusCode)
                                 {
-                                    if (item.attributes.title.ToLower().Contains("sermon"))
+                                    var readItemsTask = result.Content.ReadAsStringAsync();
+                                    if (numberOfRequests > rateLimit - 5)
                                     {
-                                        _log.LogInformation("Service Date: {serviceDate}", plan.attributes.sort_date);
-                                        _log.LogInformation("Series Title: {seriesTitle}", plan.attributes.series_title);
-                                        _log.LogInformation("Number of Items from Plan: {numberOfItems}", plan.attributes.items_count);
-                                        _log.LogInformation("Sermon Title: {sermonTitle}", item.attributes.title);
-                                        _log.LogInformation("Sermon Description: {sermonDescription}", item.attributes.description);
+                                        _log.LogInformation("Pausing programe execution to adhere to Planning Center web api request limits.");
+                                        Thread.Sleep(1000 * ratePeriod);     
+                                        numberOfRequests = 0;
+                                        readTask.Wait();                                        
                                     }
                                     else
                                     {
-                                        _log.LogInformation("No item was found with the word: sermon.");
+                                        readTask.Wait();
                                     }
+                                    
+
+                                    //var header = "Header: " + result.Headers.ToString();
+                                    string planItemResults = readItemsTask.Result;
+
+                                    Items items = JsonConvert.DeserializeObject<Items>(planItemResults);
+                                    foreach (Item item in items.data)
+                                    {
+                                        if (item.attributes.title.ToLower().Contains("sermon"))
+                                        {
+                                            _log.LogInformation("Service Date: {serviceDate}", plan.attributes.sort_date);
+                                            //_log.LogInformation("Series Title: {seriesTitle}", plan.attributes.series_title);
+                                            //_log.LogInformation("Number of Items from Plan: {numberOfItems}", plan.attributes.items_count);
+                                            _log.LogInformation("Sermon Title: {sermonTitle}", item.attributes.title);
+                                            //_log.LogInformation("Sermon Description: {sermonDescription}", item.attributes.description);
+                                        }
+                                        else
+                                        {
+                                            //_log.LogInformation("No item was found with the word: sermon.");
+                                        }
+                                    }
+
                                 }
+                                else
+                                {
+                                    _log.LogError("There was an error accessing the website retrieving the data {error}", result.ReasonPhrase);
+                                }
+                                //if (plan.attributes.multi_day)
+                                //{
+                                //    planIDs.Add(plan.id);
+                                //}
 
                             }
-                            else
-                            {
-                                _log.LogError("There was an error accessing the website retrieving the data {error}", result.ReasonPhrase);
-                            }
-                            if (plan.attributes.multi_day)
-                            {
-                                planIDs.Add(plan.id);
-                            }
+                            remainingRecords = remainingRecords - rateLimit;
+                            offSet = offSet + rateLimit;
+                        }
+                        else
+                        {
+                            _log.LogError("There was an error accessing the website retrieving the data {error}", result.ReasonPhrase);
+                            break;
 
                         }
-                        remainingRecords = remainingRecords - rateLimit;
-                        offSet = offSet + rateLimit;
-                    }
-                    else
-                    {
-                        _log.LogError("There was an error accessing the website retrieving the data {error}", result.ReasonPhrase);
-                        break;
+                        //break;
+                    //}
 
-                    }
-                    //break;
                 }
 
                 _log.LogInformation("Complete List of Plan IDs:");
