@@ -1,7 +1,9 @@
-﻿namespace RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces
+﻿using System.Threading.Tasks;
+
+namespace RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces
 {
     public interface IRetrievePlanningCenterDataService
     {
-        void Run();
+        Task Run();
     }
 }
