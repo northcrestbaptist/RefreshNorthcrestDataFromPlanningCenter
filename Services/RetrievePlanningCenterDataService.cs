@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RefreshNorthcrestDataFromPlanningCenter.Common;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
-using RefreshNorthcrestDataFromPlanningCenter.Models.Northcrest;
+using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;

@@ -17,6 +17,11 @@
 
   <ItemGroup>
     <Folder Include="BusinessLogic\Helpers\" />
+    <Folder Include="Models\Northcrest\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RefreshNorthcrestDataFromPlanningCenter.Domain\RefreshNorthcrestDataFromPlanningCenter.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

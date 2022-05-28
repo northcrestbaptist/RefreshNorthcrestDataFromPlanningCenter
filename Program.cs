@@ -19,6 +19,8 @@ namespace RefreshNorthcrestDataFromPlanningCenter
             var builder = new ConfigurationBuilder();
             BuildConfig(builder);
 
+            // Add code to write to email.  
+            // Remove code that writes to the console.
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(builder.Build()).Enrich
                 .FromLogContext()
