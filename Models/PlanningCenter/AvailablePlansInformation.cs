@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RefreshNorthcrestDataFromPlanningCenter.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter
 {
     public class AvailablePlansInformation
     {
+        public ServiceType Type { get; set; }
         public int TotalRecordsAvailable { get; set; }
         public int RemainingRecords { get; set; }
         public int OffSet { get; set; } = 0;

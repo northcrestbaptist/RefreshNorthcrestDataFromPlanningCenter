@@ -1,10 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using RefreshNorthcrestDataFromPlanningCenter.Common;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
+using RefreshNorthcrestDataFromPlanningCenter.Models.Northcrest;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;
+using System.Collections;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -21,11 +24,12 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         private readonly IConfiguration _config;
         int numberOfRequests = 0;
         PlanningCenterConfiguration planningCenterConfiguration;
-        AvailablePlansInformation availablePlansInfo, sundayMorningPlans, sundayEveningPlans, specialServicePlans;
+        AvailablePlansInformation availablePlansInfo;
         string[] plansUrlList = new string[3] {
             ServiceConstants.SUNDAY_MORNING_SERVICE_PLANS_URL,
             ServiceConstants.SUNDAY_EVENING_SERVICE_PLANS_URL,
             ServiceConstants.SPECIAL_SERVICE_PLANS_URL};
+        ArrayList sermonList = new ArrayList();
 
         public RetrievePlanningCenterDataService(
             ILogger<RetrievePlanningCenterDataService> log, 
@@ -33,18 +37,17 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         {
             _log = log;
             _config = config;
-            InitializePlanObjects();
+            
         }
         public async Task Run()
         {
             _log.LogInformation("Starting data refresh.");
             using (HttpClient client = new())
             {
-                ConfigureClient(client);
-                GetPlanningCenterConfiguration(client);
-    
                 try
                 {
+                    ConfigureClient(client);
+                    planningCenterConfiguration = GetPlanningCenterConfiguration(client);
                     for (int i=0; i < plansUrlList.Length; i++)
                     {
                         availablePlansInfo = GetAvailablePlansForServiceType(client, plansUrlList[i], i);
@@ -64,14 +67,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             Console.ReadLine();
         }
 
-        private void InitializePlanObjects()
-        {
-            planningCenterConfiguration = new PlanningCenterConfiguration();
-            sundayMorningPlans = new AvailablePlansInformation();
-            sundayEveningPlans = new AvailablePlansInformation();
-            specialServicePlans = new AvailablePlansInformation();
-        }
-
         private void ConfigureClient(HttpClient client)
         {
             string appID = _config.GetValue<string>(ServiceConstants.APP_ID);
@@ -81,34 +76,29 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ServiceConstants.BASIC, base64EncodedAuthenticationString);
         }
 
-        private void GetPlanningCenterConfiguration(HttpClient client)
+        private PlanningCenterConfiguration GetPlanningCenterConfiguration(HttpClient client)
         {
+            PlanningCenterConfiguration configuration = new();
             var responseTask = client.GetAsync(ServiceConstants.SUNDAY_MORNING_SERVICE_PLANS_URL);
             numberOfRequests++;
             responseTask.Wait();
-
             var result = responseTask.Result;
-            if (result.IsSuccessStatusCode)
-            {
-                int parseResult;
-                bool parseSuccess;
-                parseSuccess = int.TryParse(result.Headers.GetValues(ServiceConstants.RATE_LIMIT_REQUEST).FirstOrDefault(), out parseResult);
-                planningCenterConfiguration.RateLimit = parseSuccess ? parseResult : 100;
-                _log.LogInformation("Retrieved rate limit. {rateLimit}", planningCenterConfiguration.RateLimit);
-                parseSuccess = int.TryParse(result.Headers.GetValues(ServiceConstants.RATE_PERIOD_REQUEST).FirstOrDefault(), out parseResult);
-                planningCenterConfiguration.RatePeriod = parseSuccess ? parseResult : 20;
-                _log.LogInformation("Retrieved rate period. {ratePeriod}", planningCenterConfiguration.RatePeriod);
-            }
-            else
-            {
-                _log.LogError("There was an error accessing the website initially: {error}", result.ReasonPhrase);
-            }
+            int parseResult;
+            bool parseSuccess;
+            parseSuccess = int.TryParse(result.Headers.GetValues(ServiceConstants.RATE_LIMIT_REQUEST).FirstOrDefault(), out parseResult);
+            configuration.RateLimit = parseSuccess ? parseResult : 100;
+            _log.LogInformation("Retrieved rate limit. {rateLimit}", configuration.RateLimit);
+            parseSuccess = int.TryParse(result.Headers.GetValues(ServiceConstants.RATE_PERIOD_REQUEST).FirstOrDefault(), out parseResult);
+            configuration.RatePeriod = parseSuccess ? parseResult : 20;
+            _log.LogInformation("Retrieved rate period. {ratePeriod}", configuration.RatePeriod);
+            return configuration;
         }
 
         private AvailablePlansInformation GetAvailablePlansForServiceType(HttpClient client, string planUrl, int serviceTypeIndex)
         {
             string[] serviceType= new string[3] { ServiceConstants.SUNDAY_MORNING_SERVICE, ServiceConstants.SUNDAY_EVENING_SERVICE, ServiceConstants.SPECIAL_SERVICE };
             AvailablePlansInformation plansInformation = new();
+            plansInformation.Type = (ServiceType)serviceTypeIndex;
             var responseTask = client.GetAsync(planUrl);
             numberOfRequests++;
             responseTask.Wait();
@@ -198,6 +188,13 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
         private void GetSermonDetails(HttpClient client, string plansBaseUrl, AvailablePlansInformation plansInformation, Plan plan, Item item)
         {
+            Sermon sermon = new();
+            sermon.PlanID = plan.id;
+            sermon.Type = plansInformation.Type;
+            sermon.SermonDateTime = plan.attributes.sort_date;
+            sermon.Title = item.attributes.title;
+            sermon.Description = item.attributes.description;
+            
             _log.LogInformation("Date/Time: {serviceDate}", plan.attributes.sort_date);
             _log.LogInformation("Title: {sermonTitle}", item.attributes.title);
             _log.LogInformation("Description: {sermonDescription}", item.attributes.description);
@@ -206,22 +203,23 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             var responseTask = client.GetAsync(getItemNotesUrl);
             numberOfRequests++;
             responseTask.Wait();
-
             var result = responseTask.Result;
-
-
             var readTask = result.Content.ReadAsStringAsync();
             readTask.Wait();
-
             string itemNotesResults = readTask.Result;
             plansInformation.CurrentRetrievedItemNotes = JsonConvert.DeserializeObject<ItemNotes>(itemNotesResults);
             if (plansInformation.CurrentRetrievedItemNotes.data != null)
             {
                 foreach (ItemNote note in plansInformation.CurrentRetrievedItemNotes.data) // foreach 
                 {
+                    if(plansInformation.CurrentRetrievedItemNotes.data.Length == 1)
+                    {
+                        sermon.Speaker = note.attributes.content;
+                    }
                     _log.LogInformation("Speaker: {itemNotesName}", note.attributes.content);
                 }
             }
+            sermonList.Add(sermon);
         }
     }
 }
