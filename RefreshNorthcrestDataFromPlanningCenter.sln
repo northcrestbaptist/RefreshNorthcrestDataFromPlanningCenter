@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.32228.343
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RefreshNorthcrestDataFromPlanningCenter", "RefreshNorthcrestDataFromPlanningCenter.csproj", "{3877C78F-8DA5-4228-BB7C-B821498742D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RefreshNorthcrestDataFromPlanningCenter", "RefreshNorthcrestDataFromPlanningCenter\RefreshNorthcrestDataFromPlanningCenter.csproj", "{3877C78F-8DA5-4228-BB7C-B821498742D2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefreshNorthcrestDataFromPlanningCenter.Domain", "..\RefreshNorthcrestDataFromPlanningCenter.Domain\RefreshNorthcrestDataFromPlanningCenter.Domain.csproj", "{5C2E3B14-3311-48A1-B3AE-401B027B6504}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefreshNorthcrestDataFromPlanningCenter.Domain", "RefreshNorthcrestDataFromPlanningCenter.Domain\RefreshNorthcrestDataFromPlanningCenter.Domain.csproj", "{5C2E3B14-3311-48A1-B3AE-401B027B6504}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefreshNorthcrestDataFromPlanningCenter.Data", "..\RefreshNorthcrestDataFromPlanningCenter.Data\RefreshNorthcrestDataFromPlanningCenter.Data.csproj", "{F148D091-2227-46E4-8314-93776AB8A355}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefreshNorthcrestDataFromPlanningCenter.Data", "RefreshNorthcrestDataFromPlanningCenter.Data\RefreshNorthcrestDataFromPlanningCenter.Data.csproj", "{F148D091-2227-46E4-8314-93776AB8A355}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
