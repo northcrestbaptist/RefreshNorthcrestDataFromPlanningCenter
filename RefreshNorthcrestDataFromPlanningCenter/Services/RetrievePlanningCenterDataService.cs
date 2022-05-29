@@ -98,7 +98,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         {
             string[] serviceType= new string[3] { ServiceConstants.SUNDAY_MORNING_SERVICE, ServiceConstants.SUNDAY_EVENING_SERVICE, ServiceConstants.SPECIAL_SERVICE };
             AvailablePlansInformation plansInformation = new();
-            plansInformation.Type = (ServiceType)serviceTypeIndex;
+            plansInformation.Type = serviceType[serviceTypeIndex];
             var responseTask = client.GetAsync(planUrl);
             numberOfRequests++;
             responseTask.Wait();
