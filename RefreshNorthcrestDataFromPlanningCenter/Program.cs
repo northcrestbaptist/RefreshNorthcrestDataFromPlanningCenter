@@ -7,6 +7,7 @@ using RefreshNorthcrestDataFromPlanningCenter.Services;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using Serilog;
 using System;
+using RefreshNorthcrestDataFromPlanningCenter.Data;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -16,6 +17,10 @@ namespace RefreshNorthcrestDataFromPlanningCenter
     {
         static async Task Main(string[] args)
         {
+            using (NorthcrestDbContext context = new())
+            {
+                context.Database.EnsureCreated();
+            }
             var builder = new ConfigurationBuilder();
             BuildConfig(builder);
 

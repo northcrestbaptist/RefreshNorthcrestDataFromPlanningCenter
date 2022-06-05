@@ -15,8 +15,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
         protected override void OnConfiguring(DbContextOptionsBuilder dbContextOptionsBuilder)
         {
             dbContextOptionsBuilder.UseSqlServer(
-                "Data Source=(localhost)\\NBCPLANNINGCTR;Initial Catalog=NBCDB"
-
+                "Data Source=(local)\\NBCPLANNINGCTR;Initial Catalog=NBCDB;User Id=media; Password=nbc3412Nh;"
             );
         }
     }

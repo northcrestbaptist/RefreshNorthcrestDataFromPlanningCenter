@@ -3,11 +3,13 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RefreshNorthcrestDataFromPlanningCenter.Common;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
+using RefreshNorthcrestDataFromPlanningCenter.Data;
 using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -26,10 +28,13 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         PlanningCenterConfiguration planningCenterConfiguration;
         AvailablePlansInformation availablePlansInfo;
         string[] plansUrlList = new string[3] {
-            ServiceConstants.SUNDAY_MORNING_SERVICE_PLANS_URL,
-            ServiceConstants.SUNDAY_EVENING_SERVICE_PLANS_URL,
-            ServiceConstants.SPECIAL_SERVICE_PLANS_URL};
-        ArrayList sermonList = new ArrayList();
+            ServiceConstants.SUNDAY_MORNING_SERVICE_PLANS_URL
+            ,
+            ServiceConstants.SUNDAY_EVENING_SERVICE_PLANS_URL
+            ,
+            ServiceConstants.SPECIAL_SERVICE_PLANS_URL
+            };
+        IList<Sermon> sermonList = new List<Sermon>();
 
         public RetrievePlanningCenterDataService(
             ILogger<RetrievePlanningCenterDataService> log, 
@@ -37,7 +42,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         {
             _log = log;
             _config = config;
-            
         }
         public async Task Run()
         {
@@ -52,8 +56,11 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                     {
                         availablePlansInfo = GetAvailablePlansForServiceType(client, plansUrlList[i], i);
                         GetDetailsForAllPlansForServiceType(client, plansUrlList[i], availablePlansInfo);
+                        
                     }
-                    
+
+                    AddSermonsToDatabase();
+
                 }
                 catch(Exception ex)
                 {
@@ -96,7 +103,13 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
         private AvailablePlansInformation GetAvailablePlansForServiceType(HttpClient client, string planUrl, int serviceTypeIndex)
         {
-            string[] serviceType= new string[3] { ServiceConstants.SUNDAY_MORNING_SERVICE, ServiceConstants.SUNDAY_EVENING_SERVICE, ServiceConstants.SPECIAL_SERVICE };
+            string[] serviceType= new string[3] { 
+                ServiceConstants.SUNDAY_MORNING_SERVICE
+                , 
+                ServiceConstants.SUNDAY_EVENING_SERVICE
+                , 
+                ServiceConstants.SPECIAL_SERVICE
+                };
             AvailablePlansInformation plansInformation = new();
             plansInformation.Type = serviceType[serviceTypeIndex];
             var responseTask = client.GetAsync(planUrl);
@@ -124,7 +137,9 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 GetNextPageOfPlans(client, plansBaseUrl, plansInformation);
                 foreach (Plan plan in plansInformation.CurrentRetrievedPlans.data)
                 {
-                    if (plan.attributes.sort_date < DateTime.Now)
+                    if (plan.attributes.sort_date < DateTime.Now
+                        && !DoesPlanIdExistAlready(plan.id)                        )
+                    //parts.Exists(x => x.PartId == 1444));
                     {
                         GetItemsForPlan(client, plansBaseUrl, plansInformation, plan);
                         foreach (Item item in plansInformation.CurrentRetrievedItems.data)
@@ -139,6 +154,11 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 plansInformation.RemainingRecords -= planningCenterConfiguration.RateLimit;
                 plansInformation.OffSet += planningCenterConfiguration.RateLimit;
             }
+        }
+
+        private bool DoesPlanIdExistAlready(int planId)
+        {
+            return sermonList.Any(x => x.Id == planId);
         }
 
         private void GetNextPageOfPlans(HttpClient client, string plansBaseUrl, AvailablePlansInformation plansInformation)
@@ -220,6 +240,14 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 }
             }
             sermonList.Add(sermon);
+        }
+
+        private void AddSermonsToDatabase()
+        {
+            _log.LogInformation("Adding {numberOfSermons} plans with 'Sermon' in the title to the database.", sermonList.Count);
+            using var context = new NorthcrestDbContext();
+            context.AddRange(sermonList);
+            context.SaveChanges();
         }
     }
 }
