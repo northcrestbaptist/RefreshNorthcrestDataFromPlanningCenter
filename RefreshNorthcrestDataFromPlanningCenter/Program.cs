@@ -10,6 +10,8 @@ using System;
 using RefreshNorthcrestDataFromPlanningCenter.Data;
 using System.IO;
 using System.Threading.Tasks;
+using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
+using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic;
 
 namespace RefreshNorthcrestDataFromPlanningCenter
 {
@@ -35,6 +37,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                 .ConfigureServices((context, services) =>
                 {
                     services.AddTransient<IRetrievePlanningCenterDataService, RetrievePlanningCenterDataService>();
+                    services.AddScoped<ITransformData, TransformData>();
                 })
                 .UseSerilog()
                 .Build();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Common;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
 using RefreshNorthcrestDataFromPlanningCenter.Data;
@@ -19,10 +20,12 @@ using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Services
 {
+
     public class RetrievePlanningCenterDataService : IRetrievePlanningCenterDataService
     {
         private readonly ILogger<RetrievePlanningCenterDataService> _log;
         private readonly IConfiguration _config;
+        private readonly ITransformData _transformData;
         DateTime mostRecentSermonInDatabase;
         int numberOfRequests = 0;
         PlanningCenterConfiguration planningCenterConfiguration;
@@ -38,10 +41,12 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
         public RetrievePlanningCenterDataService(
             ILogger<RetrievePlanningCenterDataService> log, 
-            IConfiguration config)
+            IConfiguration config,
+            ITransformData transformData)
         {
             _log = log;
             _config = config;
+            _transformData = transformData;
         }
         public async Task Run()
         {
@@ -145,7 +150,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                         GetItemsForPlan(client, plansBaseUrl, plansInformation, plan);
                         foreach (Item item in plansInformation.CurrentRetrievedItems.data)
                         {
-                            if (item.attributes.title.ToLower().Contains(ServiceConstants.SERMON))
+                            if (item.attributes.title.ToLower().StartsWith(ServiceConstants.SERMON))
                             {
                                 GetSermonDetails(client, plansBaseUrl, plansInformation, plan, item);
                             }
@@ -242,7 +247,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             }
             if(!DoesRecordHaveNoData(sermon))
             {
-                ExecuteDataCorrections(sermon);
+                _transformData.ExecuteDataCorrections(sermon);
                 sermonList.Add(sermon);
             }
         }
@@ -283,69 +288,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             context.SaveChanges();
         }
 
-        private void ExecuteDataCorrections(Sermon sermon)
-        {
-            if(!string.IsNullOrEmpty(sermon.Title))
-            {
-                sermon.Title = TransformTitle(sermon.Title);
-            }
-            if(!string.IsNullOrEmpty(sermon.Speaker))
-            {
-                sermon.Speaker = TransformSpeakerName(sermon.Speaker);
-            }
-        }
 
-        private string TransformTitle(string title)
-        {
-            string transformedTitle;
-            if (title.StartsWith("Sermon -"))
-            {
-                transformedTitle = title.Substring(8).Trim();
-            }
-            else if(title.StartsWith("Sermon-"))
-            {
-                transformedTitle = title.Substring(7).Trim();
-            }
-            else if (title.StartsWith("Sermon"))
-            {
-                transformedTitle = title.Substring(6).Trim();
-            }
-            else
-            {
-                transformedTitle = title;
-            }
-
-            return transformedTitle;
-        }
-
-
-        private string TransformSpeakerName(string speakerName)
-        {
-            string transformedName;
-
-            switch (speakerName.Trim())
-            {
-                case "Dan Lanier":
-                case "Dr. Dan Lanier":
-                case "Dr Dan Lanier":
-                case "D. Dan Lanier":
-                case "Dr, Dan Lanier":
-                case "Dr.Dan Lanier":
-                case "Dr. Dan Lanir":
-                case "Dr. Dan :Lanier":
-                case "Dr. Dan Danier":
-                case "Dr. Da Lanier":
-                case "Dr. Dan Lanier, senior pastor Northcrest Baptist":
-                    transformedName = "Dr.Dan Lanier";
-                    break;
-
-                default:
-                    transformedName = speakerName;
-                    break;
-            }
-
-            return transformedName;
-
-        }
+        
     }
 }
