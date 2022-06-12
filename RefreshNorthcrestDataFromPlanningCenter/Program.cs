@@ -17,10 +17,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter
     {
         static async Task Main(string[] args)
         {
-            using (NorthcrestDbContext context = new())
-            {
-                context.Database.EnsureCreated();
-            }
             var builder = new ConfigurationBuilder();
             BuildConfig(builder);
 

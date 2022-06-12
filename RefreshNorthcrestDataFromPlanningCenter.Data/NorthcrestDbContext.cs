@@ -1,10 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using RefreshNorthcrestDataFromPlanningCenter.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Data
 {
@@ -14,9 +10,19 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder dbContextOptionsBuilder)
         {
-            dbContextOptionsBuilder.UseSqlServer(
-                "Data Source=(local)\\NBCPLANNINGCTR;Initial Catalog=NBCDB;User Id=media; Password=nbc3412Nh;"
-            );
+            dbContextOptionsBuilder
+                .UseSqlServer(GetConnectionStringForNorthcrestDbContext())
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        }
+
+        private string GetConnectionStringForNorthcrestDbContext()
+        {
+            var builder = new ConfigurationBuilder();
+            builder.AddJsonFile("appsettings.json", optional: false);
+
+            var configuration = builder.Build();
+
+            return configuration.GetConnectionString("Northcrest_DB_ConnectionString");
         }
     }
 }

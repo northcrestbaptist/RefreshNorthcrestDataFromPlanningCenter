@@ -21,9 +21,9 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 {
     public class RetrievePlanningCenterDataService : IRetrievePlanningCenterDataService
     {
-        
         private readonly ILogger<RetrievePlanningCenterDataService> _log;
         private readonly IConfiguration _config;
+        DateTime mostRecentSermonInDatabase;
         int numberOfRequests = 0;
         PlanningCenterConfiguration planningCenterConfiguration;
         AvailablePlansInformation availablePlansInfo;
@@ -50,6 +50,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             {
                 try
                 {
+                    SetLatestSermonDateTime();
                     ConfigureClient(client);
                     planningCenterConfiguration = GetPlanningCenterConfiguration(client);
                     for (int i=0; i < plansUrlList.Length; i++)
@@ -103,11 +104,11 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
         private AvailablePlansInformation GetAvailablePlansForServiceType(HttpClient client, string planUrl, int serviceTypeIndex)
         {
-            string[] serviceType= new string[3] { 
+            string[] serviceType= new string[3] {
                 ServiceConstants.SUNDAY_MORNING_SERVICE
-                , 
+                ,
                 ServiceConstants.SUNDAY_EVENING_SERVICE
-                , 
+                ,
                 ServiceConstants.SPECIAL_SERVICE
                 };
             AvailablePlansInformation plansInformation = new();
@@ -137,9 +138,9 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 GetNextPageOfPlans(client, plansBaseUrl, plansInformation);
                 foreach (Plan plan in plansInformation.CurrentRetrievedPlans.data)
                 {
-                    if (plan.attributes.sort_date < DateTime.Now
-                        && !DoesPlanIdExistAlready(plan.id)                        )
-                    //parts.Exists(x => x.PartId == 1444));
+                    if (plan.attributes.sort_date > mostRecentSermonInDatabase
+                        && plan.attributes.sort_date < DateTime.Now 
+                        && !DoesPlanIdExistAlready(plan.id))
                     {
                         GetItemsForPlan(client, plansBaseUrl, plansInformation, plan);
                         foreach (Item item in plansInformation.CurrentRetrievedItems.data)
@@ -239,7 +240,39 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                     _log.LogInformation("Speaker: {itemNotesName}", note.attributes.content);
                 }
             }
-            sermonList.Add(sermon);
+            if(!DoesRecordHaveNoData(sermon))
+            {
+                ExecuteDataCorrections(sermon);
+                sermonList.Add(sermon);
+            }
+        }
+
+        private bool DoesRecordHaveNoData(Sermon sermon)
+        {
+            return !IsTitleValid(sermon.Title)
+                && string.IsNullOrEmpty(sermon.Description)
+                && string.IsNullOrEmpty(sermon.Speaker);
+        }
+
+        private bool IsTitleValid(string title)
+        {
+            return title != "Sermon" && title != "Sermon - ";
+        }
+
+        private void SetLatestSermonDateTime()
+        {
+            using var context = new NorthcrestDbContext();
+            int recordCount = context.Sermons.ToList().Count();
+            if (recordCount > 0)
+            {
+                mostRecentSermonInDatabase = context.Sermons.Max(o => o.SermonDateTime);
+            }
+            else
+            {
+                mostRecentSermonInDatabase = DateTime.MinValue;
+            }
+
+            _log.LogInformation("Retrieved the latest plan date/time, which is: {planDate}", mostRecentSermonInDatabase);
         }
 
         private void AddSermonsToDatabase()
@@ -248,6 +281,71 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             using var context = new NorthcrestDbContext();
             context.AddRange(sermonList);
             context.SaveChanges();
+        }
+
+        private void ExecuteDataCorrections(Sermon sermon)
+        {
+            if(!string.IsNullOrEmpty(sermon.Title))
+            {
+                sermon.Title = TransformTitle(sermon.Title);
+            }
+            if(!string.IsNullOrEmpty(sermon.Speaker))
+            {
+                sermon.Speaker = TransformSpeakerName(sermon.Speaker);
+            }
+        }
+
+        private string TransformTitle(string title)
+        {
+            string transformedTitle;
+            if (title.StartsWith("Sermon -"))
+            {
+                transformedTitle = title.Substring(8).Trim();
+            }
+            else if(title.StartsWith("Sermon-"))
+            {
+                transformedTitle = title.Substring(7).Trim();
+            }
+            else if (title.StartsWith("Sermon"))
+            {
+                transformedTitle = title.Substring(6).Trim();
+            }
+            else
+            {
+                transformedTitle = title;
+            }
+
+            return transformedTitle;
+        }
+
+
+        private string TransformSpeakerName(string speakerName)
+        {
+            string transformedName;
+
+            switch (speakerName.Trim())
+            {
+                case "Dan Lanier":
+                case "Dr. Dan Lanier":
+                case "Dr Dan Lanier":
+                case "D. Dan Lanier":
+                case "Dr, Dan Lanier":
+                case "Dr.Dan Lanier":
+                case "Dr. Dan Lanir":
+                case "Dr. Dan :Lanier":
+                case "Dr. Dan Danier":
+                case "Dr. Da Lanier":
+                case "Dr. Dan Lanier, senior pastor Northcrest Baptist":
+                    transformedName = "Dr.Dan Lanier";
+                    break;
+
+                default:
+                    transformedName = speakerName;
+                    break;
+            }
+
+            return transformedName;
+
         }
     }
 }
