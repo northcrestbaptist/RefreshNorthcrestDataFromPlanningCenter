@@ -26,6 +26,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         private readonly ILogger<RetrievePlanningCenterDataService> _log;
         private readonly IConfiguration _config;
         private readonly ITransformData _transformData;
+        private readonly INorthcrestLocalData _northcrestLocalData;
         DateTime mostRecentSermonInDatabase;
         int numberOfRequests = 0;
         PlanningCenterConfiguration planningCenterConfiguration;
@@ -42,11 +43,14 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         public RetrievePlanningCenterDataService(
             ILogger<RetrievePlanningCenterDataService> log, 
             IConfiguration config,
-            ITransformData transformData)
+            ITransformData transformData,
+            INorthcrestLocalData northcrestLocalData
+            )
         {
             _log = log;
             _config = config;
             _transformData = transformData;
+            _northcrestLocalData = northcrestLocalData;
         }
         public async Task Run()
         {
@@ -266,18 +270,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
         private void SetLatestSermonDateTime()
         {
-            using var context = new NorthcrestDbContext();
-            int recordCount = context.Sermons.ToList().Count();
-            if (recordCount > 0)
-            {
-                mostRecentSermonInDatabase = context.Sermons.Max(o => o.SermonDateTime);
-            }
-            else
-            {
-                mostRecentSermonInDatabase = DateTime.MinValue;
-            }
-
-            _log.LogInformation("Retrieved the latest plan date/time, which is: {planDate}", mostRecentSermonInDatabase);
+            mostRecentSermonInDatabase = _northcrestLocalData.GetLatestSermonDateTime();
         }
 
         private void AddSermonsToDatabase()

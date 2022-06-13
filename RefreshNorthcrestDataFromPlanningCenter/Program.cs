@@ -38,6 +38,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                 {
                     services.AddTransient<IRetrievePlanningCenterDataService, RetrievePlanningCenterDataService>();
                     services.AddScoped<ITransformData, TransformData>();
+                    services.AddScoped<INorthcrestLocalData, NorthcrestLocalData>();
                 })
                 .UseSerilog()
                 .Build();
