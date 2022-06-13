@@ -1,5 +1,4 @@
-﻿using System;
-namespace RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter
+﻿namespace RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter
 {
     public class Item
     {

@@ -1,21 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
-using RefreshNorthcrestDataFromPlanningCenter.Common;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
-using RefreshNorthcrestDataFromPlanningCenter.Data;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Services
@@ -25,51 +17,60 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
     {
         private readonly ILogger<RetrievePlanningCenterDataService> _log;
         private readonly IConfiguration _config;
-        private readonly ITransformData _transformData;
         private readonly INorthcrestLocalData _northcrestLocalData;
-        DateTime mostRecentSermonInDatabase;
-        int numberOfRequests = 0;
-        PlanningCenterConfiguration planningCenterConfiguration;
-        AvailablePlansInformation availablePlansInfo;
-        string[] plansUrlList = new string[3] {
-            ServiceConstants.SUNDAY_MORNING_SERVICE_PLANS_URL
-            ,
-            ServiceConstants.SUNDAY_EVENING_SERVICE_PLANS_URL
-            ,
+        private readonly IPlanningCenterInfo _planningCenterInfo;
+        private readonly IGetSermonPlans _getSermonPlans;
+        private readonly IGetSermonPlanDetails _getSermonPlanDetails;
+        private readonly string[] _plansUrlList = new string[3] {
+            ServiceConstants.SUNDAY_MORNING_SERVICE_PLANS_URL,
+            ServiceConstants.SUNDAY_EVENING_SERVICE_PLANS_URL,
             ServiceConstants.SPECIAL_SERVICE_PLANS_URL
-            };
-        IList<Sermon> sermonList = new List<Sermon>();
+        };
+        private readonly string[] _serviceType = new string[3] {
+                ServiceConstants.SUNDAY_MORNING_SERVICE,
+                ServiceConstants.SUNDAY_EVENING_SERVICE,
+                ServiceConstants.SPECIAL_SERVICE
+        };
+        private AvailablePlansInformation _availablePlansInfo;
 
         public RetrievePlanningCenterDataService(
             ILogger<RetrievePlanningCenterDataService> log, 
             IConfiguration config,
-            ITransformData transformData,
-            INorthcrestLocalData northcrestLocalData
+            INorthcrestLocalData northcrestLocalData,
+            IPlanningCenterInfo planningCenterInfo,
+            IGetSermonPlans getSermonPlans,
+            IGetSermonPlanDetails getSermonPlanDetails
             )
         {
             _log = log;
             _config = config;
-            _transformData = transformData;
             _northcrestLocalData = northcrestLocalData;
+            _planningCenterInfo = planningCenterInfo;
+            _getSermonPlans = getSermonPlans;
+            _getSermonPlanDetails = getSermonPlanDetails;
+            _availablePlansInfo = new AvailablePlansInformation();
         }
         public async Task Run()
         {
             _log.LogInformation("Starting data refresh.");
-            using (HttpClient client = new())
+            using (_availablePlansInfo.Client = new())
             {
                 try
                 {
-                    SetLatestSermonDateTime();
-                    ConfigureClient(client);
-                    planningCenterConfiguration = GetPlanningCenterConfiguration(client);
-                    for (int i=0; i < plansUrlList.Length; i++)
+                    _availablePlansInfo.MostRecentSermonInNorthcrestDatabase = _northcrestLocalData.GetLatestSermonDateTime();
+                    ConfigureClient(_availablePlansInfo.Client);
+                    _availablePlansInfo.Configuration = _planningCenterInfo.GetPlanningCenterConfiguration(_availablePlansInfo.Client);
+                    _availablePlansInfo.NumberOfRequests++;
+                    for (int i=0; i < _plansUrlList.Length; i++)
                     {
-                        availablePlansInfo = GetAvailablePlansForServiceType(client, plansUrlList[i], i);
-                        GetDetailsForAllPlansForServiceType(client, plansUrlList[i], availablePlansInfo);
-                        
+                        _availablePlansInfo.Url = _plansUrlList[i];
+                        _availablePlansInfo.Type = _serviceType[i];
+                        _getSermonPlans.GetAvailablePlansForServiceType(_availablePlansInfo);
+                        _availablePlansInfo.NumberOfRequests++;
+                        _getSermonPlanDetails.GetDetailsForAllPlansForServiceType(_availablePlansInfo);
                     }
 
-                    AddSermonsToDatabase();
+                    _northcrestLocalData.AddSermonsToDatabase(_availablePlansInfo.Sermons);
 
                 }
                 catch(Exception ex)
@@ -92,196 +93,5 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             var base64EncodedAuthenticationString = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(authenticationString));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ServiceConstants.BASIC, base64EncodedAuthenticationString);
         }
-
-        private PlanningCenterConfiguration GetPlanningCenterConfiguration(HttpClient client)
-        {
-            PlanningCenterConfiguration configuration = new();
-            var responseTask = client.GetAsync(ServiceConstants.SUNDAY_MORNING_SERVICE_PLANS_URL);
-            numberOfRequests++;
-            responseTask.Wait();
-            var result = responseTask.Result;
-            int parseResult;
-            bool parseSuccess;
-            parseSuccess = int.TryParse(result.Headers.GetValues(ServiceConstants.RATE_LIMIT_REQUEST).FirstOrDefault(), out parseResult);
-            configuration.RateLimit = parseSuccess ? parseResult : 100;
-            _log.LogInformation("Retrieved rate limit. {rateLimit}", configuration.RateLimit);
-            parseSuccess = int.TryParse(result.Headers.GetValues(ServiceConstants.RATE_PERIOD_REQUEST).FirstOrDefault(), out parseResult);
-            configuration.RatePeriod = parseSuccess ? parseResult : 20;
-            _log.LogInformation("Retrieved rate period. {ratePeriod}", configuration.RatePeriod);
-            return configuration;
-        }
-
-        private AvailablePlansInformation GetAvailablePlansForServiceType(HttpClient client, string planUrl, int serviceTypeIndex)
-        {
-            string[] serviceType= new string[3] {
-                ServiceConstants.SUNDAY_MORNING_SERVICE
-                ,
-                ServiceConstants.SUNDAY_EVENING_SERVICE
-                ,
-                ServiceConstants.SPECIAL_SERVICE
-                };
-            AvailablePlansInformation plansInformation = new();
-            plansInformation.Type = serviceType[serviceTypeIndex];
-            var responseTask = client.GetAsync(planUrl);
-            numberOfRequests++;
-            responseTask.Wait();
-
-            var result = responseTask.Result;
-            var readPlanForTotalCountTask = result.Content.ReadAsStringAsync();
-            readPlanForTotalCountTask.Wait();
-            string firstResults = readPlanForTotalCountTask.Result;
-            plansInformation.CurrentRetrievedPlans = JsonConvert.DeserializeObject<Plans>(firstResults);
-            plansInformation.TotalRecordsAvailable = plansInformation.CurrentRetrievedPlans.meta.total_count;
-            plansInformation.RemainingRecords = plansInformation.CurrentRetrievedPlans.meta.total_count;
-            _log.LogInformation("Obtained information for {serviceType} plans.", serviceType[serviceTypeIndex]);
-            _log.LogInformation("Total plans available. {totalPlansAvailable}", plansInformation.CurrentRetrievedPlans.meta.total_count);
-            //Console.Write("Press any key to continue.");
-            //Console.ReadLine();
-            return plansInformation;
-        }
-
-        private void GetDetailsForAllPlansForServiceType(HttpClient client, string plansBaseUrl, AvailablePlansInformation plansInformation)
-        {
-            while (plansInformation.RemainingRecords > 0)
-            {
-                GetNextPageOfPlans(client, plansBaseUrl, plansInformation);
-                foreach (Plan plan in plansInformation.CurrentRetrievedPlans.data)
-                {
-                    if (plan.attributes.sort_date > mostRecentSermonInDatabase
-                        && plan.attributes.sort_date < DateTime.Now 
-                        && !DoesPlanIdExistAlready(plan.id))
-                    {
-                        GetItemsForPlan(client, plansBaseUrl, plansInformation, plan);
-                        foreach (Item item in plansInformation.CurrentRetrievedItems.data)
-                        {
-                            if (item.attributes.title.ToLower().StartsWith(ServiceConstants.SERMON))
-                            {
-                                GetSermonDetails(client, plansBaseUrl, plansInformation, plan, item);
-                            }
-                        }
-                    }
-                }
-                plansInformation.RemainingRecords -= planningCenterConfiguration.RateLimit;
-                plansInformation.OffSet += planningCenterConfiguration.RateLimit;
-            }
-        }
-
-        private bool DoesPlanIdExistAlready(int planId)
-        {
-            return sermonList.Any(x => x.Id == planId);
-        }
-
-        private void GetNextPageOfPlans(HttpClient client, string plansBaseUrl, AvailablePlansInformation plansInformation)
-        {
-            string getPlansByPage =
-                    $"{plansBaseUrl}?offset={plansInformation.OffSet}&per_page={planningCenterConfiguration.RateLimit}";
-            _log.LogInformation("Remaining Planning Center plans: {remainingRecords}", plansInformation.RemainingRecords);
-            _log.LogInformation("Current offset required to get next page: {offSet}", plansInformation.OffSet);
-            _log.LogInformation("Retrieving next page of plans...");
-            numberOfRequests++;
-            var responseTask = client.GetAsync(getPlansByPage);
-            numberOfRequests++;
-            responseTask.Wait();
-            var result = responseTask.Result;
-            var readTask = result.Content.ReadAsStringAsync();
-            readTask.Wait();
-            string planningCenterResults = readTask.Result;
-            plansInformation.CurrentRetrievedPlans = JsonConvert.DeserializeObject<Plans>(planningCenterResults);
-        }
-
-        private void GetItemsForPlan(HttpClient client, string plansBaseUrl, AvailablePlansInformation plansInformation, Plan plan)
-        {
-            _log.LogInformation("Retrieving items for: {planID}", plan.id);
-            string getSpecificPlan = $"{plansBaseUrl}/{plan.id}/items";
-            var responseTask = client.GetAsync(getSpecificPlan);
-            numberOfRequests++;
-            responseTask.Wait();
-
-            var result = responseTask.Result;
-            var readTask = result.Content.ReadAsStringAsync();
-            if (numberOfRequests > planningCenterConfiguration.RateLimit - 5)
-            {
-                _log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
-                Thread.Sleep(1000 * planningCenterConfiguration.RatePeriod);
-                numberOfRequests = 0;
-                readTask.Wait();
-            }
-            else
-            {
-                readTask.Wait();
-            }
-
-            string planItemResults = readTask.Result;
-
-            plansInformation.CurrentRetrievedItems = JsonConvert.DeserializeObject<Items>(planItemResults);
-        }
-
-        private void GetSermonDetails(HttpClient client, string plansBaseUrl, AvailablePlansInformation plansInformation, Plan plan, Item item)
-        {
-            Sermon sermon = new();
-            sermon.PlanID = plan.id;
-            sermon.Type = plansInformation.Type;
-            sermon.SermonDateTime = plan.attributes.sort_date;
-            sermon.Title = item.attributes.title;
-            sermon.Description = item.attributes.description;
-            
-            _log.LogInformation("Date/Time: {serviceDate}", plan.attributes.sort_date);
-            _log.LogInformation("Title: {sermonTitle}", item.attributes.title);
-            _log.LogInformation("Description: {sermonDescription}", item.attributes.description);
-            string getSpecificPlan = $"{plansBaseUrl}/{plan.id}/items";
-            string getItemNotesUrl = $"{getSpecificPlan}/{item.id}/item_notes";
-            var responseTask = client.GetAsync(getItemNotesUrl);
-            numberOfRequests++;
-            responseTask.Wait();
-            var result = responseTask.Result;
-            var readTask = result.Content.ReadAsStringAsync();
-            readTask.Wait();
-            string itemNotesResults = readTask.Result;
-            plansInformation.CurrentRetrievedItemNotes = JsonConvert.DeserializeObject<ItemNotes>(itemNotesResults);
-            if (plansInformation.CurrentRetrievedItemNotes.data != null)
-            {
-                foreach (ItemNote note in plansInformation.CurrentRetrievedItemNotes.data) // foreach 
-                {
-                    if(plansInformation.CurrentRetrievedItemNotes.data.Length == 1)
-                    {
-                        sermon.Speaker = note.attributes.content;
-                    }
-                    _log.LogInformation("Speaker: {itemNotesName}", note.attributes.content);
-                }
-            }
-            if(!DoesRecordHaveNoData(sermon))
-            {
-                _transformData.ExecuteDataCorrections(sermon);
-                sermonList.Add(sermon);
-            }
-        }
-
-        private bool DoesRecordHaveNoData(Sermon sermon)
-        {
-            return !IsTitleValid(sermon.Title)
-                && string.IsNullOrEmpty(sermon.Description)
-                && string.IsNullOrEmpty(sermon.Speaker);
-        }
-
-        private bool IsTitleValid(string title)
-        {
-            return title != "Sermon" && title != "Sermon - ";
-        }
-
-        private void SetLatestSermonDateTime()
-        {
-            mostRecentSermonInDatabase = _northcrestLocalData.GetLatestSermonDateTime();
-        }
-
-        private void AddSermonsToDatabase()
-        {
-            _log.LogInformation("Adding {numberOfSermons} plans with 'Sermon' in the title to the database.", sermonList.Count);
-            using var context = new NorthcrestDbContext();
-            context.AddRange(sermonList);
-            context.SaveChanges();
-        }
-
-
-        
     }
 }

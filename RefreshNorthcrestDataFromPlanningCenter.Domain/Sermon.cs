@@ -11,6 +11,5 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Domain
         public string Description { get; set; }
         public DateTime SermonDateTime { get; set; }
         public string Speaker { get; set; }
-        
     }
 }

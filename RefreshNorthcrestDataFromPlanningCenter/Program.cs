@@ -1,13 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using RefreshNorthcrestDataFromPlanningCenter.Models;
-using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using Serilog;
 using System;
-using RefreshNorthcrestDataFromPlanningCenter.Data;
 using System.IO;
 using System.Threading.Tasks;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
@@ -39,6 +36,9 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                     services.AddTransient<IRetrievePlanningCenterDataService, RetrievePlanningCenterDataService>();
                     services.AddScoped<ITransformData, TransformData>();
                     services.AddScoped<INorthcrestLocalData, NorthcrestLocalData>();
+                    services.AddScoped<IPlanningCenterInfo, PlanningCenterInfo>();
+                    services.AddScoped<IGetSermonPlans, GetSermonPlans>();
+                    services.AddScoped<IGetSermonPlanDetails, GetSermonPlanDetails>();
                 })
                 .UseSerilog()
                 .Build();
