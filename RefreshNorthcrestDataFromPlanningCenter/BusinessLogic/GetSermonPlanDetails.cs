@@ -54,9 +54,9 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
         {
             string getPlansByPage =
                     $"{plansInformation.Url}?offset={plansInformation.OffSet}&per_page={plansInformation.Configuration.RateLimit}";
-            _log.LogInformation("Remaining Planning Center plans: {remainingRecords}", plansInformation.RemainingRecords);
-            _log.LogInformation("Current offset required to get next page: {offSet}", plansInformation.OffSet);
-            _log.LogInformation("Retrieving next page of plans...");
+            //_log.LogInformation("Remaining Planning Center plans: {remainingRecords}", plansInformation.RemainingRecords);
+            //_log.LogInformation("Current offset required to get next page: {offSet}", plansInformation.OffSet);
+            //_log.LogInformation("Retrieving next page of plans...");
             plansInformation.NumberOfRequests++;
             var responseTask = plansInformation.Client.GetAsync(getPlansByPage);
             plansInformation.NumberOfRequests++;
@@ -75,7 +75,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
 
         private void GetItemsForPlan(AvailablePlansInformation plansInformation, Plan plan)
         {
-            _log.LogInformation("Retrieving items for: {planID}", plan.id);
+            //_log.LogInformation("Retrieving items for: {planID}", plan.id);
             string getSpecificPlan = $"{plansInformation.Url}/{plan.id}/items";
             var responseTask = plansInformation.Client.GetAsync(getSpecificPlan);
             plansInformation.NumberOfRequests++;
@@ -85,7 +85,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             var readTask = result.Content.ReadAsStringAsync();
             if (plansInformation.NumberOfRequests > plansInformation.Configuration.RateLimit - 5)
             {
-                _log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
+                //_log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
                 Thread.Sleep(1000 * plansInformation.Configuration.RatePeriod);
                 plansInformation.NumberOfRequests = 0;
                 readTask.Wait();

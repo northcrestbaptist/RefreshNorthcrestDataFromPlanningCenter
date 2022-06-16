@@ -24,27 +24,44 @@ namespace RefreshNorthcrestDataFromPlanningCenter
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(builder.Build()).Enrich
                 .FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.File("C:\\logs\\log.txt", rollingInterval: RollingInterval.Day)
+                //.WriteTo.Console()
+                //.WriteTo.File("C:\\logs\\log.txt", rollingInterval: RollingInterval.Day)
+                //.WriteTo.
+        //        .WriteTo.Email(
+        //fromEmail: "jdainsworth@northcrestbaptist.com",
+        //toEmail: "richard.johnson5@mail.peraton.com",
+        //mailServer: "smtp.northcrest.com")
+  
                 .CreateLogger();
 
-            Log.Logger.Information("Application Starting");
+            try
+            {
+                Log.Logger.Information("Application Starting");
 
-            var host = Host.CreateDefaultBuilder()
-                .ConfigureServices((context, services) =>
-                {
-                    services.AddTransient<IRetrievePlanningCenterDataService, RetrievePlanningCenterDataService>();
-                    services.AddScoped<ITransformData, TransformData>();
-                    services.AddScoped<INorthcrestLocalData, NorthcrestLocalData>();
-                    services.AddScoped<IPlanningCenterInfo, PlanningCenterInfo>();
-                    services.AddScoped<IGetSermonPlans, GetSermonPlans>();
-                    services.AddScoped<IGetSermonPlanDetails, GetSermonPlanDetails>();
-                })
-                .UseSerilog()
-                .Build();
+                var host = Host.CreateDefaultBuilder()
+                    .ConfigureServices((context, services) =>
+                    {
+                        services.AddTransient<IRetrievePlanningCenterDataService, RetrievePlanningCenterDataService>();
+                        services.AddScoped<ITransformData, TransformData>();
+                        services.AddScoped<INorthcrestLocalData, NorthcrestLocalData>();
+                        services.AddScoped<IPlanningCenterInfo, PlanningCenterInfo>();
+                        services.AddScoped<IGetSermonPlans, GetSermonPlans>();
+                        services.AddScoped<IGetSermonPlanDetails, GetSermonPlanDetails>();
+                    })
+                    .UseSerilog()
+                    .Build();
 
-            var svc = ActivatorUtilities.CreateInstance<RetrievePlanningCenterDataService>(host.Services);
-            await svc.Run();
+                var svc = ActivatorUtilities.CreateInstance<RetrievePlanningCenterDataService>(host.Services);
+                await svc.Run();
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Fatal(ex, "The application failed to even start.");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         static void BuildConfig(IConfigurationBuilder builder)

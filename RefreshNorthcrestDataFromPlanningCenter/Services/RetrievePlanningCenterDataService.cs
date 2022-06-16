@@ -81,8 +81,8 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 }
 
             }
-            Console.Write("Date refresh completed successfully. Press any key to stop the program.");
-            Console.ReadLine();
+            _log.LogInformation("Date refresh completed successfully. Press any key to stop the program.");
+            
         }
 
         private void ConfigureClient(HttpClient client)

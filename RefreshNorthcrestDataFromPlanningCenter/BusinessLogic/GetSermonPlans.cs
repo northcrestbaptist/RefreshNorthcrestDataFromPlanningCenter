@@ -28,8 +28,8 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             plansInformation.CurrentRetrievedPlans = JsonConvert.DeserializeObject<Plans>(firstResults);
             plansInformation.TotalRecordsAvailable = plansInformation.CurrentRetrievedPlans.meta.total_count;
             plansInformation.RemainingRecords = plansInformation.CurrentRetrievedPlans.meta.total_count;
-            _log.LogInformation("Obtained information for {serviceType} plans.", plansInformation.Type);
-            _log.LogInformation("Total plans available. {totalPlansAvailable}", plansInformation.CurrentRetrievedPlans.meta.total_count);
+            //_log.LogInformation("Obtained information for {serviceType} plans.", plansInformation.Type);
+            //_log.LogInformation("Total plans available. {totalPlansAvailable}", plansInformation.CurrentRetrievedPlans.meta.total_count);
         }
     }
 }

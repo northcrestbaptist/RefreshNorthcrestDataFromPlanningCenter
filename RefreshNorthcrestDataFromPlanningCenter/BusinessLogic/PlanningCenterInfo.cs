@@ -27,10 +27,10 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             bool parseSuccess;
             parseSuccess = int.TryParse(result.Headers.GetValues(ServiceConstants.RATE_LIMIT_REQUEST).FirstOrDefault(), out parseResult);
             configuration.RateLimit = parseSuccess ? parseResult : 100;
-            _log.LogInformation("Retrieved rate limit. {rateLimit}", configuration.RateLimit);
+            //_log.LogInformation("Retrieved rate limit. {rateLimit}", configuration.RateLimit);
             parseSuccess = int.TryParse(result.Headers.GetValues(ServiceConstants.RATE_PERIOD_REQUEST).FirstOrDefault(), out parseResult);
             configuration.RatePeriod = parseSuccess ? parseResult : 20;
-            _log.LogInformation("Retrieved rate period. {ratePeriod}", configuration.RatePeriod);
+            //_log.LogInformation("Retrieved rate period. {ratePeriod}", configuration.RatePeriod);
             return configuration;
         }
     }
