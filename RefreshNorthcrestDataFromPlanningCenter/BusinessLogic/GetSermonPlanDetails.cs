@@ -112,9 +112,9 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             sermon.Title = item.attributes.title;
             sermon.Description = item.attributes.description;
 
-            _log.LogInformation("Date/Time: {serviceDate}", plan.attributes.sort_date);
-            _log.LogInformation("Title: {sermonTitle}", item.attributes.title);
-            _log.LogInformation("Description: {sermonDescription}", item.attributes.description);
+            //_log.LogInformation("Date/Time: {serviceDate}", plan.attributes.sort_date);
+            //_log.LogInformation("Title: {sermonTitle}", item.attributes.title);
+            //_log.LogInformation("Description: {sermonDescription}", item.attributes.description);
             string getSpecificPlan = $"{plansInformation.Url}/{plan.id}/items";
             string getItemNotesUrl = $"{getSpecificPlan}/{item.id}/item_notes";
             var responseTask = plansInformation.Client.GetAsync(getItemNotesUrl);
@@ -127,7 +127,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             plansInformation.CurrentRetrievedItemNotes = JsonConvert.DeserializeObject<ItemNotes>(itemNotesResults);
             if (plansInformation.CurrentRetrievedItemNotes.data != null)
             {
-                foreach (ItemNote note in plansInformation.CurrentRetrievedItemNotes.data) // foreach 
+                foreach (ItemNote note in plansInformation.CurrentRetrievedItemNotes.data) 
                 {
                     if (plansInformation.CurrentRetrievedItemNotes.data.Length == 1)
                     {
@@ -140,6 +140,13 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             {
                 _transformData.ExecuteDataCorrections(sermon);
                 plansInformation.Sermons.Add(sermon);
+                _log.LogInformation("Added the following sermon plan information to the queue for addding to the Northcrest database:");
+                _log.LogInformation("Plan ID: {planId}", sermon.PlanID);
+                _log.LogInformation("Service Type: {serviceType}", sermon.Type);
+                _log.LogInformation("Sermon Date/Time: {serviceDate}", sermon.SermonDateTime);
+                _log.LogInformation("Speaker: {speaker}", sermon.Speaker);
+                _log.LogInformation("Sermon Title: {sermonTitle}", sermon.Title);
+                _log.LogInformation("Sermon Description: {sermonDescription}", sermon.Description);
             }
         }
 

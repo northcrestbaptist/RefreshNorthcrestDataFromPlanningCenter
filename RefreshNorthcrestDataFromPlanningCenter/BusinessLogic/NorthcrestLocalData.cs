@@ -31,13 +31,13 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
                 mostRecentSermonInDatabase = DateTime.MinValue;
             }
 
-            _log.LogInformation("Retrieved the latest plan date/time, which is: {planDate}", mostRecentSermonInDatabase);
+            _log.LogInformation("Retrieved the latest plan date/time from the Northcrest database, which is: {planDate}.  Note the following date rules: (1) Data refresh will look for services later than this date. (2) Data refresh will not pull future services into the Northcrest database. ", mostRecentSermonInDatabase);
             return mostRecentSermonInDatabase;
         }
         
         public void AddSermonsToDatabase(IList<Sermon> sermons)
         {
-            _log.LogInformation("Adding {numberOfSermons} plans with 'Sermon' in the title to the database.", sermons.Count);
+            _log.LogInformation("Adding {numberOfSermons} plan(s) with 'Sermon' in the title to the database.", sermons.Count);
             using var context = new NorthcrestDbContext();
             context.AddRange(sermons);
             context.SaveChanges();

@@ -21,16 +21,13 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         private readonly IPlanningCenterInfo _planningCenterInfo;
         private readonly IGetSermonPlans _getSermonPlans;
         private readonly IGetSermonPlanDetails _getSermonPlanDetails;
-        private readonly string[] _plansUrlList = new string[3] {
-            ServiceConstants.SUNDAY_MORNING_SERVICE_PLANS_URL,
-            ServiceConstants.SUNDAY_EVENING_SERVICE_PLANS_URL,
-            ServiceConstants.SPECIAL_SERVICE_PLANS_URL
-        };
-        private readonly string[] _serviceType = new string[3] {
-                ServiceConstants.SUNDAY_MORNING_SERVICE,
-                ServiceConstants.SUNDAY_EVENING_SERVICE,
-                ServiceConstants.SPECIAL_SERVICE
-        };
+        private string[] _plansUrlList = new string[3];
+        private readonly string[] _serviceType = new string[3]
+        {
+            ServiceConstants.SUNDAY_MORNING_SERVICE,
+            ServiceConstants.SUNDAY_EVENING_SERVICE,
+            ServiceConstants.SPECIAL_SERVICE
+        }; 
         private AvailablePlansInformation _availablePlansInfo;
 
         public RetrievePlanningCenterDataService(
@@ -49,10 +46,11 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             _getSermonPlans = getSermonPlans;
             _getSermonPlanDetails = getSermonPlanDetails;
             _availablePlansInfo = new AvailablePlansInformation();
+            LoadUrls();
         }
         public async Task Run()
         {
-            _log.LogInformation("Starting data refresh.");
+            _log.LogInformation("Starting data refresh...");
             using (_availablePlansInfo.Client = new())
             {
                 try
@@ -61,7 +59,8 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                     ConfigureClient(_availablePlansInfo.Client);
                     _availablePlansInfo.Configuration = _planningCenterInfo.GetPlanningCenterConfiguration(_availablePlansInfo.Client);
                     _availablePlansInfo.NumberOfRequests++;
-                    for (int i=0; i < _plansUrlList.Length; i++)
+                    _log.LogInformation("Searching for service updates...");
+                    for (int i = 0; i < _plansUrlList.Length; i++)
                     {
                         _availablePlansInfo.Url = _plansUrlList[i];
                         _availablePlansInfo.Type = _serviceType[i];
@@ -72,6 +71,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
                     _northcrestLocalData.AddSermonsToDatabase(_availablePlansInfo.Sermons);
 
+
                 }
                 catch(Exception ex)
                 {
@@ -81,7 +81,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 }
 
             }
-            _log.LogInformation("Date refresh completed successfully. Press any key to stop the program.");
+            _log.LogInformation("Date refresh completed successfully.");
             
         }
 
@@ -89,9 +89,20 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         {
             string appID = _config.GetValue<string>(ServiceConstants.APP_ID);
             string secret = _config.GetValue<string>(ServiceConstants.SECRET);
+            string basic = _config.GetValue<string>(ServiceConstants.BASIC);
             var authenticationString = $"{appID}:{secret}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(authenticationString));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(ServiceConstants.BASIC, base64EncodedAuthenticationString);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(basic, base64EncodedAuthenticationString);
+        }
+
+        private void LoadUrls()
+        {
+            string sundayMonrningPlansUrl = _config.GetValue<string>(ServiceConstants.SUNDAY_MORNING_PLANS_URL_CONFIG);
+            string sundayEveningPlansUrl = _config.GetValue<string>(ServiceConstants.SUNDAY_EVENING_PLANS_URL_CONFIG);
+            string specialPlansUrl = _config.GetValue<string>(ServiceConstants.SPECIAL_PLANS_URL_CONFIG);
+            _plansUrlList[0] = sundayMonrningPlansUrl;
+            _plansUrlList[1] = sundayEveningPlansUrl;
+            _plansUrlList[2] = specialPlansUrl;
         }
     }
 }

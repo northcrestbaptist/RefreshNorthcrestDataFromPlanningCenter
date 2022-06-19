@@ -9,6 +9,14 @@ using System.IO;
 using System.Threading.Tasks;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic;
+using System.Diagnostics;
+using System.Collections;
+using System.Reflection;
+using Serilog.Sinks.Email;
+using System.Net;
+using System.Collections.Generic;
+using System.Threading;
+using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
 
 namespace RefreshNorthcrestDataFromPlanningCenter
 {
@@ -17,27 +25,83 @@ namespace RefreshNorthcrestDataFromPlanningCenter
         static async Task Main(string[] args)
         {
             var builder = new ConfigurationBuilder();
-            BuildConfig(builder);
-
-            // Add code to write to email.  
-            // Remove code that writes to the console.
-            Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(builder.Build()).Enrich
-                .FromLogContext()
-                //.WriteTo.Console()
-                //.WriteTo.File("C:\\logs\\log.txt", rollingInterval: RollingInterval.Day)
-                //.WriteTo.
-        //        .WriteTo.Email(
-        //fromEmail: "jdainsworth@northcrestbaptist.com",
-        //toEmail: "richard.johnson5@mail.peraton.com",
-        //mailServer: "smtp.northcrest.com")
-  
-                .CreateLogger();
-
+            
             try
             {
-                Log.Logger.Information("Application Starting");
+                BuildConfig(builder);
+                IConfiguration config = builder.Build();
+                string fromEmail = config.GetValue<string>(ServiceConstants.EMAIL_FROM);
+                string toMediaEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_MEDIA);
+                string toLauraEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_LAURA);
+                string toRichieEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_RICHIE);
+                string emailServerAddress = config.GetValue<string>(ServiceConstants.EMAIL_SERVER_ADDRESS);
+                int emailServerPort = config.GetValue<int>(ServiceConstants.EMAIL_SERVER_PORT);
+                bool emailServerSsl = config.GetValue<bool>(ServiceConstants.EMAIL_SERVER_SSL);
+                string emailServerLogonUserId = config.GetValue<string>(ServiceConstants.EMAIL_SERVER_USERID);
+                string emailServerLogonPassword = config.GetValue<string>(ServiceConstants.EMAIL_SERVER_PASSWORD);
 
+                var mediaEmailConnectionInfo = new EmailConnectionInfo
+                {
+                    FromEmail = fromEmail,
+                    ToEmail = toMediaEmail,
+                    MailServer = emailServerAddress,
+                    NetworkCredentials = new NetworkCredential
+                    {
+                        UserName = emailServerLogonUserId,
+                        Password = emailServerLogonPassword
+                    },
+                    EnableSsl = emailServerSsl,
+                    EmailSubject = ServiceConstants.EMAIL_SUBJECT,
+                    Port = emailServerPort
+                };
+
+                var lauraEmailConnectionInfo = new EmailConnectionInfo
+                {
+                    FromEmail = fromEmail,
+                    ToEmail = toLauraEmail,
+                    MailServer = emailServerAddress,
+                    NetworkCredentials = new NetworkCredential
+                    {
+                        UserName = emailServerLogonUserId,
+                        Password = emailServerLogonPassword
+                    },
+                    EnableSsl = emailServerSsl,
+                    EmailSubject = ServiceConstants.EMAIL_SUBJECT,
+                    Port = emailServerPort
+                };
+
+                var richieEmailConnectionInfo = new EmailConnectionInfo
+                {
+                    FromEmail = fromEmail,
+                    ToEmail = toRichieEmail,
+                    MailServer = emailServerAddress,
+                    NetworkCredentials = new NetworkCredential
+                    {
+                        UserName = emailServerLogonUserId,
+                        Password = emailServerLogonPassword
+                    },
+                    EnableSsl = emailServerSsl,
+                    EmailSubject = ServiceConstants.EMAIL_SUBJECT,
+                    Port = emailServerPort
+                };
+
+                Log.Logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(builder.Build())
+                    .Enrich
+                    .FromLogContext()
+                    // Once you need Network Credentials, the WriteTo.Email configuration cannot be included 
+                    // in the appconfig.
+                    .WriteTo.Email(mediaEmailConnectionInfo, batchPostingLimit: 100,
+                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    .WriteTo.Email(lauraEmailConnectionInfo, batchPostingLimit: 100,
+                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    .WriteTo.Email(richieEmailConnectionInfo, batchPostingLimit: 100,
+                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    .CreateLogger();
+                Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
+
+                Log.Logger.Information("Application Starting");
+                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
                 var host = Host.CreateDefaultBuilder()
                     .ConfigureServices((context, services) =>
                     {
@@ -51,12 +115,12 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                     .UseSerilog()
                     .Build();
 
-                var svc = ActivatorUtilities.CreateInstance<RetrievePlanningCenterDataService>(host.Services);
-                await svc.Run();
+                    var svc = ActivatorUtilities.CreateInstance<RetrievePlanningCenterDataService>(host.Services);
+                    await svc.Run();
             }
             catch (Exception ex)
             {
-                Log.Logger.Fatal(ex, "The application failed to even start.");
+                Log.Logger.Fatal(ex, "There was an error during the Northcrest data refresh.");
             }
             finally
             {
@@ -68,7 +132,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter
         {
             builder.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+                //.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
                 .AddEnvironmentVariables();
         }
     }
