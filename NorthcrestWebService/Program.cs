@@ -1,11 +1,16 @@
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
 using NorthcrestWebService.App_BusinessLogic.ManifestUnit;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
 builder.Services.AddScoped<ISermonProcessor, SermonProcessor>();
 
 var app = builder.Build();
