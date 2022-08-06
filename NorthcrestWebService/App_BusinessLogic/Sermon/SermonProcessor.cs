@@ -13,7 +13,7 @@ namespace NorthcrestWebService.App_BusinessLogic.ManifestUnit
         public async Task<IList<Sermon>> GetSermonsAsync()
         {
             using var context = new NorthcrestDbContext();
-            IList<Sermon> sermons = await context.Sermons.ToListAsync();
+            IList<Sermon> sermons = await context.Sermons.OrderByDescending(sermon => sermon.SermonDateTime).ToListAsync();
 
             return sermons;
         }
