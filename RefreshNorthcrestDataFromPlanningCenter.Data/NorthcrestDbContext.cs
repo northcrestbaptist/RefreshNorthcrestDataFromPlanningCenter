@@ -11,7 +11,14 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
         protected override void OnConfiguring(DbContextOptionsBuilder dbContextOptionsBuilder)
         {
             dbContextOptionsBuilder
-                .UseSqlServer(GetConnectionStringForNorthcrestDbContext())
+                .UseSqlServer(GetConnectionStringForNorthcrestDbContext(),
+                sqlServerOptionsAction: sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 10,
+                        maxRetryDelay: System.TimeSpan.FromSeconds(5),
+                        errorNumbersToAdd: null);
+                })
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 

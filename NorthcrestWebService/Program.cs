@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost:8100");
+                          policy.WithOrigins("https://azure01.northcrestbaptist.com/:443");
                       });
 });
 
@@ -34,7 +34,6 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

@@ -4,8 +4,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:32569",
-      "sslPort": 44348
+      "applicationUrl": "https://azure01.northcrestbaptist.com/NorthcrestData/",
+      "sslPort": 443
     }
   },
   "profiles": {

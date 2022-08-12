@@ -89,6 +89,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                     .ReadFrom.Configuration(builder.Build())
                     .Enrich
                     .FromLogContext()
+                    //.WriteTo.Console()
                     // Once you need Network Credentials, the WriteTo.Email configuration cannot be included 
                     // in the appconfig.
                     .WriteTo.Email(mediaEmailConnectionInfo, batchPostingLimit: 100,

@@ -10,7 +10,7 @@ namespace DTAS_MMWebServices_Core.Controllers
 {
     //[Route("api/[controller]/[action]")]
 
-    [ApiController]
+    [ApiController, RequireHttps]
     [Route("[controller]/[action]")]
     public class SermonController : ControllerBase
     {
@@ -21,7 +21,7 @@ namespace DTAS_MMWebServices_Core.Controllers
             _sermonProcessor = sermonProcessor;
         }
 
-        [HttpGet]
+        [HttpGet, RequireHttps]
         public async Task<IActionResult> GetSermons()
         {
             try
@@ -45,4 +45,6 @@ namespace DTAS_MMWebServices_Core.Controllers
             }
         }
     }
+
+
 }
