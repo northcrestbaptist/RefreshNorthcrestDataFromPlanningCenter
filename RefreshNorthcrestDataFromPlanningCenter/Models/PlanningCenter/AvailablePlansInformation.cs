@@ -20,6 +20,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter
         public Plans CurrentRetrievedPlans { get; set; } 
         public Items CurrentRetrievedItems { get; set; }
         public ItemNotes CurrentRetrievedItemNotes { get; set; }
+        public Attachments CurrentRetievedAttachments { get; set; }
         public IList<Sermon> Sermons { get; set; } = new List<Sermon>();    
 
     }

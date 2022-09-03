@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
+using NorthcrestWebService.Models.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using System;
 using System.Collections.Generic;
@@ -28,15 +29,30 @@ namespace DTAS_MMWebServices_Core.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    IList<Sermon> sermonList =
+                    IList<IClientSermon> clientSermonList =
                         await _sermonProcessor.GetSermonsAsync();
 
-                    return Ok(sermonList);
+                    return Ok(clientSermonList);
                 }
                 else
                 {
                     return BadRequest(ModelState);
                 }
+            }
+            catch (Exception ex)
+            {
+                // TODO Add error logging.
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
+
+        public async Task<IActionResult> GetFile([FromQuery]int fileId)
+        {
+            try
+            {
+                byte[] file = await _sermonProcessor.GetFileAsync(fileId);
+                Stream stream = new MemoryStream(file);
+                return new FileStreamResult(stream, "application/pdf");
             }
             catch (Exception ex)
             {

@@ -39,8 +39,20 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
         {
             _log.LogInformation("Adding {numberOfSermons} plan(s) with 'Sermon' in the title to the database.", sermons.Count);
             using var context = new NorthcrestDbContext();
-            context.AddRange(sermons);
-            context.SaveChanges();
+            //context.AddRange(sermons);
+            try
+            {
+                foreach (Sermon sermon in sermons)
+                {
+                    context.Add(sermon);
+                }
+            
+                context.SaveChanges();
+            }
+            catch(Exception ex)
+            {
+                _log.LogInformation("There was an error: {error}", ex);
+            }
         }
     }
 }

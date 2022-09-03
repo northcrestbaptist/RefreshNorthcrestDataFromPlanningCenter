@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using System;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Data
 {
     public class NorthcrestDbContext : DbContext
     {
         public DbSet<Sermon> Sermons { get; set; }
+        public DbSet<Attachment> Attachments { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder dbContextOptionsBuilder)
         {
@@ -20,6 +22,85 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
                         errorNumbersToAdd: null);
                 })
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.Attachment", b =>
+            {
+                b.Property<int>("AttachmentId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttachmentId"), 1L, 1);
+
+                b.Property<string>("ContentType")
+                    .HasColumnType("varchar(100)");
+
+                b.Property<bool>("Downloadable")
+                    .HasColumnType("bit");
+
+                b.Property<byte[]>("File")
+                    .HasColumnType("varbinary(max)")
+                    .IsRequired();
+
+                b.Property<string>("FileName")
+                    .HasColumnType("varchar(100)")
+                    .IsRequired();
+
+                b.Property<int>("FileSize")
+                    .HasColumnType("int");
+
+                b.Property<string>("FileType")
+                    .HasColumnType("varchar(25)")
+                    .IsRequired();
+
+                b.Property<bool>("HasPreview")
+                    .HasColumnType("bit");
+
+                b.Property<int>("SermonId")
+                    .HasColumnType("int");
+
+                b.Property<string>("Url")
+                    .HasColumnType("varchar(5000)");
+
+                b.HasKey("AttachmentId");
+
+                b.HasIndex("SermonId");
+
+                b.ToTable("Attachments");
+            });
+
+            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.Sermon", b =>
+            {
+                b.Property<int>("SermonId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SermonId"), 1L, 1);
+
+                b.Property<string>("Description")
+                    .HasColumnType("varchar(5000)");
+
+                b.Property<int>("PlanId")
+                    .HasColumnType("int");
+
+                b.Property<DateTime>("SermonDateTime")
+                    .HasColumnType("datetime2(7)");
+
+                b.Property<string>("Speaker")
+                    .HasColumnType("varchar(1000)");
+
+                b.Property<string>("Title")
+                    .HasColumnType("varchar(200)");
+
+                b.Property<string>("Type")
+                    .HasColumnType("varchar(50)");
+
+                b.HasKey("SermonId");
+
+                b.ToTable("Sermons");
+            });
         }
 
         private string GetConnectionStringForNorthcrestDbContext()

@@ -1,5 +1,7 @@
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
 using NorthcrestWebService.App_BusinessLogic.ManifestUnit;
+using NorthcrestWebService.Common.Factories;
+using NorthcrestWebService.Common.FactoryInterfaces;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +15,9 @@ builder.Services.AddControllers()
          // I determined that I don't need this on the client.
         //opts.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
-builder.Services.AddScoped<ISermonProcessor, SermonProcessor>();
+builder.Services.AddScoped<ISermonProcessor, SermonProcessor>()
+    .AddScoped<IClientAttachmentFactory, ClientAttachmentFactory>()
+    .AddScoped<IClientSermonFactory, ClientSermonFactory>();
 
 // Added the below code to access the site during development.  Otherwise, the web app can't access
 // the site due to CORS policy.  I can take out later.

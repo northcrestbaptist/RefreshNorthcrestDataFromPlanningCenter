@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
+﻿using NorthcrestWebService.Models.Interfaces;
 
 namespace NorthcrestWebService.App_BusinessLogic.Interfaces
 {
     public interface ISermonProcessor
     {
-        Task<IList<Sermon>> GetSermonsAsync();
+        Task<IList<IClientSermon>> GetSermonsAsync();
+        Task<byte[]> GetFileAsync(int fileId);
     }
 }

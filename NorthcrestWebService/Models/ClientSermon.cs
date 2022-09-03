@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using NorthcrestWebService.Models.Interfaces;
 
-namespace RefreshNorthcrestDataFromPlanningCenter.Domain
+namespace NorthcrestWebService.Models
 {
-    public class Sermon
+    public class ClientSermon : IClientSermon
     {
-        public Sermon()
-        {
-            Attachments = new List<Attachment>();
-        }
-
         public int SermonId { get; set; }
         public int PlanId { get; set; }
         public string Type { get; set; }
@@ -17,6 +11,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Domain
         public string Description { get; set; }
         public DateTime SermonDateTime { get; set; }
         public string Speaker { get; set; }
-        public List<Attachment> Attachments { get; set; }
+        public List<IClientAttachment> Attachments { get; set; } = new List<IClientAttachment>();
     }
 }

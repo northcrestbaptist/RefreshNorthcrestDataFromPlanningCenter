@@ -141,6 +141,11 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
                 case "Rick Corum":
                     transformedName = "Rick Coram";
                     break;
+                case "Marcus Hayes":
+                case "Marcus D. Hayes":
+                case "Marcus D Hayes":
+                    transformedName = "Dr. Marcus D. Hayes";
+                    break;
                 default:
                     transformedName = name;
                     break;
