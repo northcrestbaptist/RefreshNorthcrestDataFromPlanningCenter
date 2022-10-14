@@ -43,13 +43,13 @@ namespace NorthcrestWebService.Common.Factories
                 switch(attachment.FileType)
                 {
                     case "pdf":
-                        clientAttachment.IconName = "file";
+                        clientAttachment.IconName = "document";
                         break;
                     case "video":
-                        clientAttachment.IconName = "video";
+                        clientAttachment.IconName = "videocam";
                         break;
                     default:
-                        clientAttachment.IconName = "question";
+                        clientAttachment.IconName = "help";
                         break;
                 }
                 clientSermon.Attachments.Add(clientAttachment);

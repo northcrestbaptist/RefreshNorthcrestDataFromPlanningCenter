@@ -19,14 +19,17 @@ builder.Services.AddScoped<ISermonProcessor, SermonProcessor>()
     .AddScoped<IClientAttachmentFactory, ClientAttachmentFactory>()
     .AddScoped<IClientSermonFactory, ClientSermonFactory>();
 
-// Added the below code to access the site during development.  Otherwise, the web app can't access
+//Added the below code to access the site during development.  Otherwise, the web app can't access
 // the site due to CORS policy.  I can take out later.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("https://azure01.northcrestbaptist.com/:443");
+                          //policy.WithOrigins("https://azure01.northcrestbaptist.com/:443");
+                          policy.AllowAnyHeader();
+                          policy.AllowAnyOrigin();
+                          policy.AllowAnyMethod();
                       });
 });
 
@@ -37,7 +40,7 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseCors(MyAllowSpecificOrigins);
-app.UseAuthorization();
+//app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
