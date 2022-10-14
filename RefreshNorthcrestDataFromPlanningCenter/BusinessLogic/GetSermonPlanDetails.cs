@@ -15,6 +15,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
 {
@@ -146,15 +147,14 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
                 int attachmentRecordCount = 0;
                 foreach (Domain.Attachment attachment in sermon.Attachments)
                 {
-                    _log.LogInformation("Attachment record {recordCount}:", attachmentRecordCount++);
-                    _log.LogInformation("Attachment ID: {id}", attachment.AttachmentId);
+                    _log.LogInformation("Attachment record {recordCount}:", ++attachmentRecordCount);
                     _log.LogInformation("Attachment File Name: {fileName}", attachment.FileName);
                     _log.LogInformation("Attachment File Type: {fileType}", attachment.FileType);
                     _log.LogInformation("Attachment Content Type: {contentType}", attachment.ContentType);
                     _log.LogInformation("Attachment File Size: {fileSize}", attachment.FileSize);
                     _log.LogInformation("Url for downloading attachment: {url}", attachment.Url);
                     _log.LogInformation("Attachment Downloadable? {downloadable}", attachment.Downloadable);
-                    _log.LogInformation("Has Preview?: {hasPreview}", attachment.HasPreview);
+                    _log.LogInformation("Has Preview: {hasPreview}", attachment.HasPreview);
                 }
             }
         }
@@ -211,7 +211,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             string getAttachmentsUrl = $"{getSpecificPlan}/{item.id}/attachments";
 
             // Retrieve sermon attachments.
-            byte[] file;
+            
             var responseTask = plansInformation.Client.GetAsync(getAttachmentsUrl);
             plansInformation.NumberOfRequests++;
             responseTask.Wait();
@@ -232,53 +232,78 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             plansInformation.CurrentRetievedAttachments = JsonConvert.DeserializeObject<Attachments>(attachmentResults);
             if (plansInformation.CurrentRetievedAttachments.data != null)
             {
-                foreach (RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter.Attachment attachment in plansInformation.CurrentRetievedAttachments.data)
+                foreach (Models.PlanningCenter.Attachment attachment in plansInformation.CurrentRetievedAttachments.data)
                 {
                     attachment.attributes.filename = getFileName(attachment.attributes.filename);
-                    if ((attachment.attributes.filetype == "pdf") //|| attachment.attributes.filetype == "video")
-                        && attachment.attributes.downloadable
-                        && attachment.attributes.file_size > 0)
+                    if (attachment.attributes.filetype == "pdf") //|| attachment.attributes.filetype == "video")
                     {
-                        HttpContent c = new StringContent("{ }", Encoding.UTF8, "application/json");
-                        var fileResponseTask = plansInformation.Client.PostAsync($"https://api.planningcenteronline.com/services/v2/attachments/{attachment.id}/open", c);
-                        plansInformation.NumberOfRequests++;
-                        fileResponseTask.Wait();
-                        var fileResponseStringTask = fileResponseTask.Result.Content.ReadAsStringAsync();
-                        if (plansInformation.NumberOfRequests > plansInformation.Configuration.RateLimit - 5)
-                        {
-                            //_log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
-                            Thread.Sleep(1000 * plansInformation.Configuration.RatePeriod);
-                            plansInformation.NumberOfRequests = 0;
-                            fileResponseStringTask.Wait();
-                        }
-                        else
-                        {
-                            fileResponseStringTask.Wait();
-                        }
-
-                        string attachmentTypeResults = fileResponseStringTask.Result;
-                        AttachmentActivityResult attachmentActivityResult = JsonConvert.DeserializeObject<AttachmentActivityResult>(attachmentTypeResults);
-                        HttpClient client = new HttpClient();
-                        var actualFileResponseTask = client.GetStreamAsync(attachmentActivityResult.data.attributes.attachment_url);
-                        plansInformation.NumberOfRequests++;
-                        actualFileResponseTask.Wait();
-                        MemoryStream ms = new MemoryStream();
-
-                        await actualFileResponseTask.Result.CopyToAsync(ms);
-                        file = ms.ToArray();
-                        Domain.Attachment newAttachmentRecord = new Domain.Attachment();
-                        newAttachmentRecord.FileName = attachment.attributes.filename;
-                        newAttachmentRecord.ContentType = attachment.attributes.content_type;
-                        newAttachmentRecord.Downloadable = attachment.attributes.downloadable;
-                        newAttachmentRecord.File = file;
-                        newAttachmentRecord.FileSize = attachment.attributes.file_size;
-                        newAttachmentRecord.FileType = attachment.attributes.filetype;
-                        newAttachmentRecord.HasPreview = attachment.attributes.has_preview;
-                        newAttachmentRecord.Url = attachment.attributes.url;
-                        sermon.Attachments.Add(newAttachmentRecord);
-                        //await File.WriteAllBytesAsync($"C:\\{attachment.attributes.filename}", file);
+                        await getPdfAttachment(plansInformation, attachment, sermon);
+                    } else if (attachment.attributes.filetype == "video")
+                    {
+                        getVideoAttachment(plansInformation, attachment, sermon);
                     }
                 }
+            }
+        }
+
+        private async Task getPdfAttachment(
+            AvailablePlansInformation plansInformation,
+            Models.PlanningCenter.Attachment attachment,
+            Sermon sermon)
+        {
+            if (attachment.attributes.downloadable && attachment.attributes.file_size > 0)
+            {
+                byte[] file;
+                HttpContent c = new StringContent("{ }", Encoding.UTF8, "application/json");
+                var fileResponseTask = plansInformation.Client.PostAsync($"https://api.planningcenteronline.com/services/v2/attachments/{attachment.id}/open", c);
+                plansInformation.NumberOfRequests++;
+                fileResponseTask.Wait();
+                var fileResponseStringTask = fileResponseTask.Result.Content.ReadAsStringAsync();
+                if (plansInformation.NumberOfRequests > plansInformation.Configuration.RateLimit - 5)
+                {
+                    //_log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
+                    Thread.Sleep(1000 * plansInformation.Configuration.RatePeriod);
+                    plansInformation.NumberOfRequests = 0;
+                    fileResponseStringTask.Wait();
+                }
+                else
+                {
+                    fileResponseStringTask.Wait();
+                }
+
+                string attachmentTypeResults = fileResponseStringTask.Result;
+                AttachmentActivityResult attachmentActivityResult = JsonConvert.DeserializeObject<AttachmentActivityResult>(attachmentTypeResults);
+                HttpClient client = new HttpClient();
+                var actualFileResponseTask = client.GetStreamAsync(attachmentActivityResult.data.attributes.attachment_url);
+                plansInformation.NumberOfRequests++;
+                actualFileResponseTask.Wait();
+                MemoryStream ms = new MemoryStream();
+
+                await actualFileResponseTask.Result.CopyToAsync(ms);
+                file = ms.ToArray();
+                Domain.Attachment newAttachmentRecord = new Domain.Attachment();
+                newAttachmentRecord.FileName = attachment.attributes.filename;
+                newAttachmentRecord.ContentType = attachment.attributes.content_type;
+                newAttachmentRecord.Downloadable = attachment.attributes.downloadable;
+                newAttachmentRecord.File = file;
+                newAttachmentRecord.FileSize = attachment.attributes.file_size;
+                newAttachmentRecord.FileType = attachment.attributes.filetype;
+                newAttachmentRecord.HasPreview = attachment.attributes.has_preview;
+                newAttachmentRecord.Url = attachment.attributes.url;
+                sermon.Attachments.Add(newAttachmentRecord);
+                //await File.WriteAllBytesAsync($"C:\\{attachment.attributes.filename}", file);
+            }
+        }
+
+        private void getVideoAttachment(
+            AvailablePlansInformation plansInformation,
+            Models.PlanningCenter.Attachment attachment,
+            Sermon sermon)
+        {
+            if (attachment.attributes.downloadable && attachment.attributes.file_size > 0)
+            {
+                _log.LogInformation("Found the following video file: {videoFile}", attachment.attributes.filename);
+                _log.LogInformation("Development for storing video files is underway and not yet completed.");
             }
         }
 
