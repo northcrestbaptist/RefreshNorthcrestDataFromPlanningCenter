@@ -40,7 +40,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
                 foreach (Plan plan in plansInformation.CurrentRetrievedPlans.data)
                 {
                     if (plan.attributes.sort_date > plansInformation.MostRecentSermonInNorthcrestDatabase
-                    && plan.attributes.sort_date < DateTime.Now
+                    && plan.attributes.sort_date < DateTime.Now.AddDays(8)
                     && !DoesPlanIdExistAlready(plansInformation, plan.id))
                     {
                         GetItemsForPlan(plansInformation, plan);
@@ -132,29 +132,29 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             {
                 _transformData.ExecuteDataCorrections(sermon);
                 plansInformation.Sermons.Add(sermon);
-                _log.LogInformation("Added the following sermon plan information to the queue for addding to the Northcrest database:");
-                _log.LogInformation("Plan ID: {planId}", sermon.PlanId);
-                _log.LogInformation("Service Type: {serviceType}", sermon.Type);
-                _log.LogInformation("Sermon Date/Time: {serviceDate}", sermon.SermonDateTime);
-                _log.LogInformation("Speaker: {speaker}", sermon.Speaker);
-                _log.LogInformation("Sermon Title: {sermonTitle}", sermon.Title);
-                _log.LogInformation("Sermon Description: {sermonDescription}", sermon.Description);
-                _log.LogInformation("Number of sermon attachments: {attachmentCount}", sermon.Attachments.Count);
+                //_log.LogInformation("Added the following sermon plan information to the queue for addding to the Northcrest database:");
+                //_log.LogInformation("Plan ID: {planId}", sermon.PlanId);
+                //_log.LogInformation("Service Type: {serviceType}", sermon.Type);
+                //_log.LogInformation("Sermon Date/Time: {serviceDate}", sermon.SermonDateTime);
+                //_log.LogInformation("Speaker: {speaker}", sermon.Speaker);
+                //_log.LogInformation("Sermon Title: {sermonTitle}", sermon.Title);
+                //_log.LogInformation("Sermon Description: {sermonDescription}", sermon.Description);
+                //_log.LogInformation("Number of sermon attachments: {attachmentCount}", sermon.Attachments.Count);
                 if (sermon.Attachments.Count > 0)
                 {
-                    _log.LogInformation("Attachment Record Info:...");
+                    //_log.LogInformation("Attachment Record Info:...");
                 }
                 int attachmentRecordCount = 0;
                 foreach (Domain.Attachment attachment in sermon.Attachments)
                 {
-                    _log.LogInformation("Attachment record {recordCount}:", ++attachmentRecordCount);
-                    _log.LogInformation("Attachment File Name: {fileName}", attachment.FileName);
-                    _log.LogInformation("Attachment File Type: {fileType}", attachment.FileType);
-                    _log.LogInformation("Attachment Content Type: {contentType}", attachment.ContentType);
-                    _log.LogInformation("Attachment File Size: {fileSize}", attachment.FileSize);
-                    _log.LogInformation("Url for downloading attachment: {url}", attachment.Url);
-                    _log.LogInformation("Attachment Downloadable? {downloadable}", attachment.Downloadable);
-                    _log.LogInformation("Has Preview: {hasPreview}", attachment.HasPreview);
+                    //_log.LogInformation("Attachment record {recordCount}:", ++attachmentRecordCount);
+                    //_log.LogInformation("Attachment File Name: {fileName}", attachment.FileName);
+                    //_log.LogInformation("Attachment File Type: {fileType}", attachment.FileType);
+                    //_log.LogInformation("Attachment Content Type: {contentType}", attachment.ContentType);
+                    //_log.LogInformation("Attachment File Size: {fileSize}", attachment.FileSize);
+                    //_log.LogInformation("Url for downloading attachment: {url}", attachment.Url);
+                    //_log.LogInformation("Attachment Downloadable: {downloadable}", attachment.Downloadable);
+                    //_log.LogInformation("Has Preview: {hasPreview}", attachment.HasPreview);
                 }
             }
         }

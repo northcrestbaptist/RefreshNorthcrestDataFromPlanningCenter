@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Folder Include="BusinessLogic\Helpers\" />
+    <Folder Include="Common\GlobalVariables\" />
     <Folder Include="Models\Northcrest\" />
   </ItemGroup>
 

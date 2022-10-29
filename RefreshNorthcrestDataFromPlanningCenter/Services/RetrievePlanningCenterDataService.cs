@@ -55,6 +55,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             {
                 try
                 {
+                    _northcrestLocalData.DeleteSermonsWithinDateRangeFromDatabase();
                     _availablePlansInfo.MostRecentSermonInNorthcrestDatabase = _northcrestLocalData.GetLatestSermonDateTime();
                     ConfigureClient(_availablePlansInfo.Client);
                     _availablePlansInfo.Configuration = _planningCenterInfo.GetPlanningCenterConfiguration(_availablePlansInfo.Client);

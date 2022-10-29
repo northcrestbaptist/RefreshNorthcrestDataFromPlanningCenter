@@ -2,6 +2,9 @@
 {
     public class ServiceConstants
     {
+        // Local App Configurations
+        public const string NUMBER_OF_DAYS_TO_REFRESH = "AppLocalConfig:NumberOfDaysToRefresh";
+
         // Planning Center API Configurations
         public const string RATE_LIMIT_REQUEST = "PlanningCenter:RateLimit";
         public const string RATE_PERIOD_REQUEST = "PlanningCenter:RatePeriod";
