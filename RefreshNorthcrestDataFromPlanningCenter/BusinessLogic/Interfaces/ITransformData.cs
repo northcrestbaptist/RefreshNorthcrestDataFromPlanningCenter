@@ -1,9 +1,11 @@
 ﻿using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces
 {
     public interface ITransformData
     {
-        void ExecuteDataCorrections (Sermon sermon);
+        void ExecuteSermonDataCorrections (Sermon sermon);
+        void ExecuteGeneralSongDataCorrections(GeneralSong generalSong);
     }
 }

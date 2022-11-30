@@ -6,7 +6,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
 {
     public class TransformData : ITransformData
     {
-        public void ExecuteDataCorrections(Sermon sermon)
+        public void ExecuteSermonDataCorrections(Sermon sermon)
         {
             if (!string.IsNullOrEmpty(sermon.Title))
             {
@@ -15,6 +15,14 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             if (!string.IsNullOrEmpty(sermon.Speaker))
             {
                 sermon.Speaker = TransformSpeakerName(sermon.Speaker);
+            }
+        }
+
+        public void ExecuteGeneralSongDataCorrections(GeneralSong generalSong)
+        {
+            if (!string.IsNullOrEmpty(generalSong.Themes))
+            {
+                generalSong.Themes = TransformThemes(generalSong.Themes);
             }
         }
 
@@ -152,6 +160,20 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             }
 
             return transformedName;
+        }
+
+        private string TransformThemes(string themes)
+        {
+            string transformedThemes;
+            if (themes.StartsWith(", "))
+            {
+                transformedThemes = themes.Substring(2);
+            }
+            else
+            {
+                transformedThemes = themes;
+            }
+            return transformedThemes;
         }
     }
 }

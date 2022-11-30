@@ -8,6 +8,8 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces
     {
         DateTime GetLatestSermonDateTime();
         void AddSermonsToDatabase(IList<Sermon> sermons);
-        void DeleteSermonsWithinDateRangeFromDatabase();
+        void DeleteSermonsWithinDateRangeFromDatabase(int numberOfDays);
+
+        void AddOrUpdateGeneralSong(GeneralSong generalSong);
     }
 }

@@ -3,7 +3,13 @@
     public class ServiceConstants
     {
         // Local App Configurations
-        public const string NUMBER_OF_DAYS_TO_REFRESH = "AppLocalConfig:NumberOfDaysToRefresh";
+        public const string REFRESH_GENERAL_SONG_DATA = "AppLocalConfig:RefreshGeneralSongData";
+        public const string REFRESH_PLAN_SONG_DATA = "AppLocalConfig:RefreshPlanSongData";
+        public const string REFRESH_SERMON_DATA = "AppLocalConfig:RefreshSermonData";
+        public const string NUMBER_OF_DAYS_TO_REFRESH_GENERAL_SONG_DATA = "AppLocalConfig:NumberOfDaysToRefreshGeneralSongData";
+        public const string NUMBER_OF_DAYS_TO_REFRESH_PLAN_SONG_DATA = "AppLocalConfig:NumberOfDaysToRefreshPlanSongData";
+        public const string NUMBER_OF_DAYS_TO_REFRESH_SERMON_DATA = "AppLocalConfig:NumberOfDaysToRefreshSermonData";
+        public const string NUMBER_OF_DAYS_TO_REFRESH_FUTURE_DATA = "AppLocalConfig:NumberofDaysToRefreshFutureData";
 
         // Planning Center API Configurations
         public const string RATE_LIMIT_REQUEST = "PlanningCenter:RateLimit";
@@ -37,6 +43,8 @@
         public const string SPECIAL_SERVICE = "Special Service";
         public const string SPECIAL_SERVICES = "Special Services";
 
+        // Service Item Types in Planning Center
         public const string SERMON = "sermon";
+        public const string SONG = "song";
     }
 }

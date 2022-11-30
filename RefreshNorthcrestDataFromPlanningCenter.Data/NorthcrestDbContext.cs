@@ -9,6 +9,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
     {
         public DbSet<Sermon> Sermons { get; set; }
         public DbSet<Attachment> Attachments { get; set; }
+        public DbSet<GeneralSong> GeneralSongs { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder dbContextOptionsBuilder)
         {
@@ -100,6 +101,44 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
                 b.HasKey("SermonId");
 
                 b.ToTable("Sermons");
+            });
+
+            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.GeneralSong", b =>
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                b.Property<int>("SongId")
+                    .HasColumnType("int");
+
+                b.Property<int>("ArrangementId")
+                    .HasColumnType("int");
+
+                b.Property<string>("SongName")
+                    .HasColumnType("varchar(500)");
+
+                b.Property<string>("ArrangementName")
+                    .HasColumnType("varchar(1000)");
+
+                b.Property<string>("Author")
+                    .HasColumnType("varchar(2000)");
+
+                b.Property<string>("Copyright")
+                    .HasColumnType("varchar(2000)");
+
+                b.Property<int>("Length")
+                    .HasColumnType("int");
+
+                b.Property<string>("Themes")
+                    .HasColumnType("varchar(2000)");
+
+                b.Property<DateTime>("LastScheduledDateTime")
+                    .HasColumnType("datetime2(7)");
+
+                b.ToTable("GeneralSongs");
             });
         }
 

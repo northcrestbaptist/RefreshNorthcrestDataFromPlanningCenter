@@ -1,78 +1,54 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
 using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
-using RefreshNorthcrestDataFromPlanningCenter.Services;
+using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Mail;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
 
-namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
+namespace RefreshNorthcrestDataFromPlanningCenter.Services
 {
-    public class GetSermonPlanDetails : IGetSermonPlanDetails
+    public class RetrieveSermonDataService : IRetrieveSermonDataService
     {
         private readonly ILogger<RetrievePlanningCenterDataService> _log;
         private readonly ITransformData _transformData;
+        private readonly IRetrieveItemsService _retrieveItemsService;
 
-        public GetSermonPlanDetails(
-            ILogger<RetrievePlanningCenterDataService> log, 
-            ITransformData transformData)
+        public RetrieveSermonDataService(ILogger <RetrievePlanningCenterDataService> log,
+            ITransformData transformData,
+            IRetrieveItemsService retrieveItemsService)
         {
             _log = log;
-            _transformData = transformData; 
+            _transformData = transformData;
+            _retrieveItemsService = retrieveItemsService;
         }
 
-        public void GetDetailsForAllPlansForServiceType(AvailablePlansInformation plansInformation)
+        public void GetSermonDataForSpecifiedPlan(AvailablePlansInformation plansInformation, Plan plan)
         {
-            while (plansInformation.RemainingRecords > 0)
-            {
-                GetNextPageOfPlans(plansInformation);
-                foreach (Plan plan in plansInformation.CurrentRetrievedPlans.data)
-                {
-                    if (plan.attributes.sort_date > plansInformation.MostRecentSermonInNorthcrestDatabase
-                    && plan.attributes.sort_date < DateTime.Now.AddDays(8)
+            if (plan.attributes.sort_date > plansInformation.MostRecentSermonInNorthcrestDatabase
+                    && plan.attributes.sort_date < DateTime.Now.AddDays(plansInformation.RefreshAppConfig.NumberOfDaysToRefreshFutureData)
                     && !DoesPlanIdExistAlready(plansInformation, plan.id))
+            {
+                //_log.LogInformation("--------------------------------------------------------------------------------------------------");
+                //_log.LogInformation("--------------------------------------------------------------------------------------------------");
+                //_log.LogInformation("Retrieving Sermon Data for Date/Time: {dateTime}", plan.attributes.sort_date);
+                _retrieveItemsService.GetItemsForSpecifiedPlan(plansInformation, plan);
+                foreach (Item item in plansInformation.CurrentRetrievedItems.data)
+                {
+                    if (item.attributes.title.ToLower().StartsWith(ServiceConstants.SERMON))
                     {
-                        GetItemsForPlan(plansInformation, plan);
-                        foreach (Item item in plansInformation.CurrentRetrievedItems.data)
-                        {
-                            if (item.attributes.title.ToLower().StartsWith(ServiceConstants.SERMON))
-                            {
-                                GetSermonDetails(plansInformation, plan, item);
-                            }
-
-                        }
+                        getSermonDetails(plansInformation, plan, item);
                     }
                 }
-                plansInformation.RemainingRecords -= plansInformation.Configuration.RateLimit;
-                plansInformation.OffSet += plansInformation.Configuration.RateLimit;
             }
-        }
-
-        private void GetNextPageOfPlans(AvailablePlansInformation plansInformation)
-        {
-            string getPlansByPage =
-                    $"{plansInformation.Url}?offset={plansInformation.OffSet}&per_page={plansInformation.Configuration.RateLimit}";
-           
-            plansInformation.NumberOfRequests++;
-            var responseTask = plansInformation.Client.GetAsync(getPlansByPage);
-            plansInformation.NumberOfRequests++;
-            responseTask.Wait();
-            var result = responseTask.Result;
-            var readTask = result.Content.ReadAsStringAsync();
-            readTask.Wait();
-            string planningCenterResults = readTask.Result;
-            plansInformation.CurrentRetrievedPlans = JsonConvert.DeserializeObject<Plans>(planningCenterResults);
         }
 
         private bool DoesPlanIdExistAlready(AvailablePlansInformation plansInformation, int planId)
@@ -80,41 +56,14 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             return plansInformation.Sermons.Any(x => x.SermonId == planId);
         }
 
-        private void GetItemsForPlan(AvailablePlansInformation plansInformation, Plan plan)
-        {
-            //_log.LogInformation("Retrieving items for: {planID}", plan.id);
-            string getSpecificPlan = $"{plansInformation.Url}/{plan.id}/items";
-            var responseTask = plansInformation.Client.GetAsync(getSpecificPlan);
-            plansInformation.NumberOfRequests++;
-            responseTask.Wait();
-
-            var result = responseTask.Result;
-            var readTask = result.Content.ReadAsStringAsync();
-            if (plansInformation.NumberOfRequests > plansInformation.Configuration.RateLimit - 5)
-            {
-                //_log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
-                Thread.Sleep(1000 * plansInformation.Configuration.RatePeriod);
-                plansInformation.NumberOfRequests = 0;
-                readTask.Wait();
-            }
-            else
-            {
-                readTask.Wait();
-            }
-
-            string planItemResults = readTask.Result;
-
-            plansInformation.CurrentRetrievedItems = JsonConvert.DeserializeObject<Items>(planItemResults);
-        }
-
-        private async void GetSermonDetails(
+        private async void getSermonDetails(
             AvailablePlansInformation plansInformation,
             Plan plan,
             Item item)
         {
             Sermon sermon = new();
             sermon.PlanId = plan.id;
-            sermon.Type = plansInformation.Type;
+            sermon.Type = plansInformation.CurrentPlanType;
             sermon.SermonDateTime = plan.attributes.sort_date;
             sermon.Title = item.attributes.title;
             sermon.Description = item.attributes.description;
@@ -123,40 +72,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             getSermonNotes(plansInformation, plan, item, sermon);
             await getSermonAttachments(plansInformation, plan, item, sermon);
             addSermonToList(plansInformation, sermon);
-            
-        }
 
-        private void addSermonToList(AvailablePlansInformation plansInformation, Sermon sermon)
-        {
-            if (!DoesRecordHaveNoData(sermon))
-            {
-                _transformData.ExecuteDataCorrections(sermon);
-                plansInformation.Sermons.Add(sermon);
-                //_log.LogInformation("Added the following sermon plan information to the queue for addding to the Northcrest database:");
-                //_log.LogInformation("Plan ID: {planId}", sermon.PlanId);
-                //_log.LogInformation("Service Type: {serviceType}", sermon.Type);
-                //_log.LogInformation("Sermon Date/Time: {serviceDate}", sermon.SermonDateTime);
-                //_log.LogInformation("Speaker: {speaker}", sermon.Speaker);
-                //_log.LogInformation("Sermon Title: {sermonTitle}", sermon.Title);
-                //_log.LogInformation("Sermon Description: {sermonDescription}", sermon.Description);
-                //_log.LogInformation("Number of sermon attachments: {attachmentCount}", sermon.Attachments.Count);
-                if (sermon.Attachments.Count > 0)
-                {
-                    //_log.LogInformation("Attachment Record Info:...");
-                }
-                int attachmentRecordCount = 0;
-                foreach (Domain.Attachment attachment in sermon.Attachments)
-                {
-                    //_log.LogInformation("Attachment record {recordCount}:", ++attachmentRecordCount);
-                    //_log.LogInformation("Attachment File Name: {fileName}", attachment.FileName);
-                    //_log.LogInformation("Attachment File Type: {fileType}", attachment.FileType);
-                    //_log.LogInformation("Attachment Content Type: {contentType}", attachment.ContentType);
-                    //_log.LogInformation("Attachment File Size: {fileSize}", attachment.FileSize);
-                    //_log.LogInformation("Url for downloading attachment: {url}", attachment.Url);
-                    //_log.LogInformation("Attachment Downloadable: {downloadable}", attachment.Downloadable);
-                    //_log.LogInformation("Has Preview: {hasPreview}", attachment.HasPreview);
-                }
-            }
         }
 
         private void getSermonNotes(
@@ -165,7 +81,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             Item item,
             Sermon sermon)
         {
-            string getSpecificPlan = $"{plansInformation.Url}/{plan.id}/items";
+            string getSpecificPlan = $"{plansInformation.CurrentUrl}/{plan.id}/items";
             string getItemNotesUrl = $"{getSpecificPlan}/{item.id}/item_notes";
 
             // Retrieve sermon notes.
@@ -174,10 +90,10 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             responseTask.Wait();
             var result = responseTask.Result;
             var readTask = result.Content.ReadAsStringAsync();
-            if (plansInformation.NumberOfRequests > plansInformation.Configuration.RateLimit - 5)
+            if (plansInformation.NumberOfRequests > plansInformation.PlanningCtrConfig.RateLimit - 5)
             {
                 //_log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
-                Thread.Sleep(1000 * plansInformation.Configuration.RatePeriod);
+                Thread.Sleep(1000 * plansInformation.PlanningCtrConfig.RatePeriod);
                 plansInformation.NumberOfRequests = 0;
                 readTask.Wait();
             }
@@ -207,20 +123,20 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             Item item,
             Sermon sermon)
         {
-            string getSpecificPlan = $"{plansInformation.Url}/{plan.id}/items";
+            string getSpecificPlan = $"{plansInformation.CurrentUrl}/{plan.id}/items";
             string getAttachmentsUrl = $"{getSpecificPlan}/{item.id}/attachments";
 
             // Retrieve sermon attachments.
-            
+
             var responseTask = plansInformation.Client.GetAsync(getAttachmentsUrl);
             plansInformation.NumberOfRequests++;
             responseTask.Wait();
             var result = responseTask.Result;
             var readTask = result.Content.ReadAsStringAsync();
-            if (plansInformation.NumberOfRequests > plansInformation.Configuration.RateLimit - 5)
+            if (plansInformation.NumberOfRequests > plansInformation.PlanningCtrConfig.RateLimit - 5)
             {
                 //_log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
-                Thread.Sleep(1000 * plansInformation.Configuration.RatePeriod);
+                Thread.Sleep(1000 * plansInformation.PlanningCtrConfig.RatePeriod);
                 plansInformation.NumberOfRequests = 0;
                 readTask.Wait();
             }
@@ -238,7 +154,8 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
                     if (attachment.attributes.filetype == "pdf") //|| attachment.attributes.filetype == "video")
                     {
                         await getPdfAttachment(plansInformation, attachment, sermon);
-                    } else if (attachment.attributes.filetype == "video")
+                    }
+                    else if (attachment.attributes.filetype == "video")
                     {
                         getVideoAttachment(plansInformation, attachment, sermon);
                     }
@@ -247,9 +164,9 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
         }
 
         private async Task getPdfAttachment(
-            AvailablePlansInformation plansInformation,
-            Models.PlanningCenter.Attachment attachment,
-            Sermon sermon)
+        AvailablePlansInformation plansInformation,
+        Models.PlanningCenter.Attachment attachment,
+        Sermon sermon)
         {
             if (attachment.attributes.downloadable && attachment.attributes.file_size > 0)
             {
@@ -259,10 +176,10 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
                 plansInformation.NumberOfRequests++;
                 fileResponseTask.Wait();
                 var fileResponseStringTask = fileResponseTask.Result.Content.ReadAsStringAsync();
-                if (plansInformation.NumberOfRequests > plansInformation.Configuration.RateLimit - 5)
+                if (plansInformation.NumberOfRequests > plansInformation.PlanningCtrConfig.RateLimit - 5)
                 {
                     //_log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
-                    Thread.Sleep(1000 * plansInformation.Configuration.RatePeriod);
+                    Thread.Sleep(1000 * plansInformation.PlanningCtrConfig.RatePeriod);
                     plansInformation.NumberOfRequests = 0;
                     fileResponseStringTask.Wait();
                 }
@@ -302,18 +219,19 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
         {
             if (attachment.attributes.downloadable && attachment.attributes.file_size > 0)
             {
-                _log.LogInformation("Found the following video file: {videoFile}", attachment.attributes.filename);
-                _log.LogInformation("Development for storing video files is underway and not yet completed.");
+                //_log.LogInformation("Found the following video file: {videoFile}", attachment.attributes.filename);
+                //_log.LogInformation("Development for storing video files is underway and not yet completed.");
             }
         }
 
         private string getFileName(string originalFileName)
         {
             string newFileName = originalFileName;
-            if(string.IsNullOrEmpty(originalFileName))
+            if (string.IsNullOrEmpty(originalFileName))
             {
                 newFileName = "originalFileNameWasInvalid";
-            } else if(originalFileName.Contains('?'))
+            }
+            else if (originalFileName.Contains('?'))
             {
                 newFileName = originalFileName.Replace('?', '-');
             }
@@ -345,6 +263,40 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
                     ms.Write(buffer, 0, read);
                 }
                 return ms.ToArray();
+            }
+        }
+
+
+        private void addSermonToList(AvailablePlansInformation plansInformation, Sermon sermon)
+        {
+            if (!DoesRecordHaveNoData(sermon))
+            {
+                _transformData.ExecuteSermonDataCorrections(sermon);
+                plansInformation.Sermons.Add(sermon);
+                //_log.LogInformation("Added the following sermon plan information to the queue for addding to the Northcrest database:");
+                //_log.LogInformation("Plan ID: {planId}", sermon.PlanId);
+                //_log.LogInformation("Service Type: {serviceType}", sermon.Type);
+                //_log.LogInformation("Sermon Date/Time: {serviceDate}", sermon.SermonDateTime);
+                //_log.LogInformation("Speaker: {speaker}", sermon.Speaker);
+                //_log.LogInformation("Sermon Title: {sermonTitle}", sermon.Title);
+                //_log.LogInformation("Sermon Description: {sermonDescription}", sermon.Description);
+                //_log.LogInformation("Number of sermon attachments: {attachmentCount}", sermon.Attachments.Count);
+                if (sermon.Attachments.Count > 0)
+                {
+                    //_log.LogInformation("Attachment Record Info:...");
+                }
+                int attachmentRecordCount = 0;
+                foreach (Domain.Attachment attachment in sermon.Attachments)
+                {
+                    //_log.LogInformation("Attachment record {recordCount}:", ++attachmentRecordCount);
+                    //_log.LogInformation("Attachment File Name: {fileName}", attachment.FileName);
+                    //_log.LogInformation("Attachment File Type: {fileType}", attachment.FileType);
+                    //_log.LogInformation("Attachment Content Type: {contentType}", attachment.ContentType);
+                    //_log.LogInformation("Attachment File Size: {fileSize}", attachment.FileSize);
+                    //_log.LogInformation("Url for downloading attachment: {url}", attachment.Url);
+                    //_log.LogInformation("Attachment Downloadable: {downloadable}", attachment.Downloadable);
+                    //_log.LogInformation("Has Preview: {hasPreview}", attachment.HasPreview);
+                }
             }
         }
 

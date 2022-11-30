@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RefreshNorthcrestDataFromPlanningCenter.Data;
 
@@ -11,9 +12,10 @@ using RefreshNorthcrestDataFromPlanningCenter.Data;
 namespace RefreshNorthcrestDataFromPlanningCenter.Data.Migrations
 {
     [DbContext(typeof(NorthcrestDbContext))]
-    partial class NorthcrestDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221127212016_addGeneralSongTable")]
+    partial class addGeneralSongTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,14 +95,20 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data.Migrations
                     b.Property<int>("Length")
                         .HasColumnType("int");
 
+                    b.Property<string>("Notes")
+                        .HasColumnType("varchar(5000)");
+
                     b.Property<int>("SongId")
                         .HasColumnType("int");
 
                     b.Property<string>("SongName")
                         .HasColumnType("varchar(500)");
 
-                    b.Property<string>("Themes")
-                        .HasColumnType("varchar(2000)");
+                    b.Property<string>("Speaker")
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("Id");
 

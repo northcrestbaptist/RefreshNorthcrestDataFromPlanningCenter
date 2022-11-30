@@ -1,22 +1,18 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic;
+using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
+using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
 using RefreshNorthcrestDataFromPlanningCenter.Services;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using Serilog;
+
+using Serilog.Sinks.Email;
 using System;
 using System.IO;
-using System.Threading.Tasks;
-using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
-using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic;
-using System.Diagnostics;
-using System.Collections;
-using System.Reflection;
-using Serilog.Sinks.Email;
 using System.Net;
-using System.Collections.Generic;
-using System.Threading;
-using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
+using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter
 {
@@ -109,9 +105,13 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                         services.AddTransient<IRetrievePlanningCenterDataService, RetrievePlanningCenterDataService>();
                         services.AddScoped<ITransformData, TransformData>();
                         services.AddScoped<INorthcrestLocalData, NorthcrestLocalData>();
-                        services.AddScoped<IPlanningCenterInfo, PlanningCenterInfo>();
-                        services.AddScoped<IGetSermonPlans, GetSermonPlans>();
-                        services.AddScoped<IGetSermonPlanDetails, GetSermonPlanDetails>();
+                        services.AddScoped<IRetrievePlanDataService, RetrievePlanDataService>();
+                        services.AddScoped<IRetrieveSermonDataService, RetrieveSermonDataService>();
+                        services.AddScoped<IRetrieveGeneralSongDataService, RetrieveGeneralSongDataService>();
+                        services.AddScoped<IRetrievePlanSongDataService, RetrievePlanSongDataService>();
+                        services.AddScoped<IRetrieveItemsService, RetrieveItemsService>();
+                        services.AddScoped<INorthcrestConfigurationService, NorthcrestConfigurationService>();
+                        services.AddScoped<IDatabaseUpdateService, DatabaseUpdateService>();
                     })
                     .UseSerilog()
                     .Build();
