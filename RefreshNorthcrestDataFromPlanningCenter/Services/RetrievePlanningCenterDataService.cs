@@ -11,8 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Services
-{
-
+{ 
     public class RetrievePlanningCenterDataService : IRetrievePlanningCenterDataService
     {
         private readonly ILogger<RetrievePlanningCenterDataService> _log;
@@ -33,13 +32,14 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             _retrievePlanDataService = retrievePlanDataService;
             _availablePlansInfo = new AvailablePlansInformation();
         }
-        public async Task Run()
+        public async Task RunAsync()
         {
             _log.LogInformation("Starting data refresh...");
             using (_availablePlansInfo.Client = new())
             {
                 try
                 {
+                    _northcrestConfigurationService.LogLocalAppConfigurationInstructions();
                     _log.LogInformation("Retrieving and setting Northcrest and Planning Center configurations...");
                     _northcrestConfigurationService.SetConfiguration(_availablePlansInfo);
                     bool refreshSomething = _northcrestConfigurationService.IsAnythingConfiguredToRefresh(_availablePlansInfo);
@@ -47,7 +47,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                     {
                         _databaseUpdateService.DeleteLocalDataToBeRefreshed(_availablePlansInfo);
                         _log.LogInformation("Retrieving sermon and song data from Planning Center according to current configurations...");
-                        GetPlanDataFromPlanningCenter();
+                        await GetPlanDataFromPlanningCenterAsync();
                         _databaseUpdateService.RefreshDataThatWasRetrievedFromPlanningCenter(_availablePlansInfo);
                     }
                     else
@@ -70,7 +70,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             
         }
 
-        private void GetPlanDataFromPlanningCenter()
+        private async Task GetPlanDataFromPlanningCenterAsync()
         {
             for (int i = 0; i < _availablePlansInfo.PlanUrlList.Length; i++)
             {
@@ -78,7 +78,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 _availablePlansInfo.CurrentPlanType = _availablePlansInfo.PlanTypeList[i];
                 _retrievePlanDataService.GetAvailablePlansForServiceType(_availablePlansInfo);
                 _availablePlansInfo.NumberOfRequests++;
-                _retrievePlanDataService.GetDetailsForAllPlansForServiceType(_availablePlansInfo);
+                await _retrievePlanDataService.GetDetailsForAllPlansForServiceTypeAsync(_availablePlansInfo);
             }
         }
     }

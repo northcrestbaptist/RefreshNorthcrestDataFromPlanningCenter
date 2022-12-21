@@ -48,9 +48,11 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 "{RefreshGeneralSongData}, {RefreshPlanSongData}, and {RefreshSermonData}", true, false,
                 ServiceConstants.REFRESH_GENERAL_SONG_DATA, ServiceConstants.REFRESH_PLAN_SONG_DATA, ServiceConstants.REFRESH_SERMON_DATA);
             _log.LogInformation("The following values can be set to a number to set the number of days to refresh: " +
-                "{NumberOfDaysToRefreshGeneralSongData}, {NumberOfDaysToRefreshPlanSongData}, and {NumberOfDaysToRefreshSermonData}",
-                ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_GENERAL_SONG_DATA, ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_PLAN_SONG_DATA,
-                ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_SERMON_DATA);
+                "{NumberOfDaysToRefreshGeneralSongData}, {NumberOfDaysToRefreshSermonData}, and {NumberOfDaysToRefreshFutureData}",
+                ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_GENERAL_HIS_SONG_DATA, ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_HIS_SERMON_DATA,
+                ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_FUTURE_DATA);
+            _log.LogInformation("The number of days to refresh historical songs data from each plan is permanently set to 1 day in the past. " +
+                "This data includes pdf and mp3 files for each song and can take up a large amount disk space cumulatively. ");
         }
 
         private AuthenticationHeaderValue LoadClientConfiguration()
@@ -94,12 +96,12 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             _log.LogInformation("Refresh Plan Song Data: {refresh}", localAppConfig.RefreshPlanSongData);
             localAppConfig.RefreshSermonData = _config.GetValue<bool>(ServiceConstants.REFRESH_SERMON_DATA);
             _log.LogInformation("Refresh Sermon Data: {refresh}", localAppConfig.RefreshSermonData);
-            localAppConfig.NumberOfDaysToRefreshGeneralSongData = _config.GetValue<int>(ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_GENERAL_SONG_DATA);
-            _log.LogInformation("Number of days to refresh General Song Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshGeneralSongData);
-            localAppConfig.NumberOfDaysToRefreshPlanSongData = _config.GetValue<int>(ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_PLAN_SONG_DATA);
-            _log.LogInformation("Number of days to refresh Plan Song Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshPlanSongData);
-            localAppConfig.NumberOfDaysToRefreshSermonData = _config.GetValue<int>(ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_SERMON_DATA);
-            _log.LogInformation("Number of days to refresh Sermon Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshSermonData);
+            localAppConfig.NumberOfDaysToRefreshGeneralSongData = _config.GetValue<int>(ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_GENERAL_HIS_SONG_DATA);
+            _log.LogInformation("Number of days to refresh Historical General Song Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshGeneralSongData);
+            // Number of days to refresh Plan Song Data is set in the class itself on the property.
+            _log.LogInformation("Number of days to refresh Historical Plan Song Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshPlanSongData);
+            localAppConfig.NumberOfDaysToRefreshSermonData = _config.GetValue<int>(ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_HIS_SERMON_DATA);
+            _log.LogInformation("Number of days to refresh Historical Sermon Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshSermonData);
             localAppConfig.NumberOfDaysToRefreshFutureData = _config.GetValue<int>(ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_FUTURE_DATA);
             _log.LogInformation("Number of days to refresh Future Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshFutureData);
             return localAppConfig;

@@ -45,7 +45,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 {
                     if (item.attributes.title.ToLower().StartsWith(ServiceConstants.SERMON))
                     {
-                        getSermonDetails(plansInformation, plan, item);
+                        getSermonDetailsAsync(plansInformation, plan, item);
                     }
                 }
             }
@@ -56,7 +56,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             return plansInformation.Sermons.Any(x => x.SermonId == planId);
         }
 
-        private async void getSermonDetails(
+        private async void getSermonDetailsAsync(
             AvailablePlansInformation plansInformation,
             Plan plan,
             Item item)
@@ -70,7 +70,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
 
             getSermonNotes(plansInformation, plan, item, sermon);
-            await getSermonAttachments(plansInformation, plan, item, sermon);
+            await getSermonAttachmentsAsync(plansInformation, plan, item, sermon);
             addSermonToList(plansInformation, sermon);
 
         }
@@ -117,7 +117,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             }
         }
 
-        private async Task getSermonAttachments(
+        private async Task getSermonAttachmentsAsync(
             AvailablePlansInformation plansInformation,
             Plan plan,
             Item item,
@@ -145,15 +145,15 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                 readTask.Wait();
             }
             string attachmentResults = readTask.Result;
-            plansInformation.CurrentRetievedAttachments = JsonConvert.DeserializeObject<Attachments>(attachmentResults);
-            if (plansInformation.CurrentRetievedAttachments.data != null)
+            plansInformation.CurrentRetrievedAttachments = JsonConvert.DeserializeObject<Attachments>(attachmentResults);
+            if (plansInformation.CurrentRetrievedAttachments.data != null)
             {
-                foreach (Models.PlanningCenter.Attachment attachment in plansInformation.CurrentRetievedAttachments.data)
+                foreach (Models.PlanningCenter.Attachment attachment in plansInformation.CurrentRetrievedAttachments.data)
                 {
                     attachment.attributes.filename = getFileName(attachment.attributes.filename);
                     if (attachment.attributes.filetype == "pdf") //|| attachment.attributes.filetype == "video")
                     {
-                        await getPdfAttachment(plansInformation, attachment, sermon);
+                        await getPdfAttachmentAsync(plansInformation, attachment, sermon);
                     }
                     else if (attachment.attributes.filetype == "video")
                     {
@@ -163,7 +163,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             }
         }
 
-        private async Task getPdfAttachment(
+        private async Task getPdfAttachmentAsync(
         AvailablePlansInformation plansInformation,
         Models.PlanningCenter.Attachment attachment,
         Sermon sermon)

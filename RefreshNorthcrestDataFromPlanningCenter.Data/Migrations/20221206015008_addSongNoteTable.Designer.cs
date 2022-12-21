@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RefreshNorthcrestDataFromPlanningCenter.Data;
 
@@ -11,9 +12,10 @@ using RefreshNorthcrestDataFromPlanningCenter.Data;
 namespace RefreshNorthcrestDataFromPlanningCenter.Data.Migrations
 {
     [DbContext(typeof(NorthcrestDbContext))]
-    partial class NorthcrestDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221206015008_addSongNoteTable")]
+    partial class addSongNoteTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -211,53 +213,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data.Migrations
                     b.ToTable("Sermons", (string)null);
                 });
 
-            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.SongAttachment", b =>
-                {
-                    b.Property<int>("SongAttachmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SongAttachmentId"), 1L, 1);
-
-                    b.Property<string>("ContentType")
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<bool>("Downloadable")
-                        .HasColumnType("bit");
-
-                    b.Property<byte[]>("File")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("FilePath")
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<int>("FileSize")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FileType")
-                        .IsRequired()
-                        .HasColumnType("varchar(25)");
-
-                    b.Property<bool>("HasPreview")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("PlanSongId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Url")
-                        .HasColumnType("varchar(5000)");
-
-                    b.HasKey("SongAttachmentId");
-
-                    b.HasIndex("PlanSongId");
-
-                    b.ToTable("SongAttachments", (string)null);
-                });
-
             modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.SongNote", b =>
                 {
                     b.Property<int>("SongNoteId")
@@ -305,17 +260,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data.Migrations
                     b.Navigation("Plan_ForSongs");
                 });
 
-            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.SongAttachment", b =>
-                {
-                    b.HasOne("RefreshNorthcrestDataFromPlanningCenter.Domain.PlanSong", "PlanSong")
-                        .WithMany("SongAttachments")
-                        .HasForeignKey("PlanSongId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PlanSong");
-                });
-
             modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.SongNote", b =>
                 {
                     b.HasOne("RefreshNorthcrestDataFromPlanningCenter.Domain.PlanSong", "PlanSong")
@@ -334,8 +278,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data.Migrations
 
             modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.PlanSong", b =>
                 {
-                    b.Navigation("SongAttachments");
-
                     b.Navigation("SongNotes");
                 });
 

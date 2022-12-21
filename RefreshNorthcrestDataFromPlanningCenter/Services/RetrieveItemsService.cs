@@ -38,5 +38,34 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
             plansInformation.CurrentRetrievedItems = JsonConvert.DeserializeObject<Items>(planItemResults);
         }
+
+         public Song GetSongRecord(
+            AvailablePlansInformation plansInformation,
+            Item item
+            )
+        {
+            string getSongRecord = $"https://api.planningcenteronline.com/services/v2/songs/{item.relationships.song.data.id}";
+
+            // Retrieve song record.
+            var responseTask = plansInformation.Client.GetAsync(getSongRecord);
+            plansInformation.NumberOfRequests++;
+            responseTask.Wait();
+            var result = responseTask.Result;
+            var readTask = result.Content.ReadAsStringAsync();
+            if (plansInformation.NumberOfRequests > plansInformation.PlanningCtrConfig.RateLimit - 5)
+            {
+                Thread.Sleep(1000 * plansInformation.PlanningCtrConfig.RatePeriod);
+                plansInformation.NumberOfRequests = 0;
+                readTask.Wait();
+            }
+            else
+            {
+                readTask.Wait();
+            }
+
+            string songRecordResults = readTask.Result;
+
+            return JsonConvert.DeserializeObject<Song>(songRecordResults);
+        }
     }
 }

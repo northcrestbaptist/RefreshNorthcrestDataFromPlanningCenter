@@ -4,6 +4,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces
 {
     public interface IRetrievePlanningCenterDataService
     {
-        Task Run();
+        Task RunAsync();
     }
 }

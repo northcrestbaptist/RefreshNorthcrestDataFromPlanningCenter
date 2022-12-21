@@ -11,7 +11,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter
     {
         public DateTime MostRecentSermonInNorthcrestDatabase { get; set; }
         public DateTime MostRecentGeneralSongInfoInNorthcrestDatabase { get; set; }
-        public DateTime MostRecentPlanSongInfoInNorthcrestDatabase { get; set; }
+        public DateTime MostRecentPlanWithSongInfoInNorthcrestDatabase { get; set; }
         public HttpClient Client { get; set; }
         public string[] PlanUrlList { get; set; }
         public string[] PlanTypeList { get; set; } = new string[3];
@@ -26,15 +26,13 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter
         public int OffSet { get; set; } = 0;
         public int NumberofPlansUsedToRefreshGeneralSongs { get; set; } = 0;
         public int NumberOfGeneralSongsRefreshed { get; set; } = 0;
-        public int NumberofPlansUsedToRefreshPlanSongs { get; set; } = 0;
-        public int NumberOfPlanSongsRefreshed { get; set; } = 0;
-
         public Plans CurrentRetrievedPlans { get; set; } 
         public Items CurrentRetrievedItems { get; set; }
         public ItemNotes CurrentRetrievedItemNotes { get; set; }
-        public Attachments CurrentRetievedAttachments { get; set; }
+        public Attachments CurrentRetrievedAttachments { get; set; }
+        public SongAttachments CurrentRetrievedSongAttachments { get; set; }
         public IList<Sermon> Sermons { get; set; } = new List<Sermon>();
-        //public IList<GeneralSong> GeneralSongs { get; set; } = new List<GeneralSong>();
+        public IList<Plan_ForSongs> Plan_ForSongsList { get; set; } = new List<Plan_ForSongs>();
 
     }
 }

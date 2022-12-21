@@ -117,7 +117,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                     .Build();
 
                     var svc = ActivatorUtilities.CreateInstance<RetrievePlanningCenterDataService>(host.Services);
-                    await svc.Run();
+                    await svc.RunAsync();
             }
             catch (Exception ex)
             {

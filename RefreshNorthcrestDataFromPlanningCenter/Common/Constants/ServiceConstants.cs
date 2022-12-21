@@ -6,9 +6,9 @@
         public const string REFRESH_GENERAL_SONG_DATA = "AppLocalConfig:RefreshGeneralSongData";
         public const string REFRESH_PLAN_SONG_DATA = "AppLocalConfig:RefreshPlanSongData";
         public const string REFRESH_SERMON_DATA = "AppLocalConfig:RefreshSermonData";
-        public const string NUMBER_OF_DAYS_TO_REFRESH_GENERAL_SONG_DATA = "AppLocalConfig:NumberOfDaysToRefreshGeneralSongData";
-        public const string NUMBER_OF_DAYS_TO_REFRESH_PLAN_SONG_DATA = "AppLocalConfig:NumberOfDaysToRefreshPlanSongData";
-        public const string NUMBER_OF_DAYS_TO_REFRESH_SERMON_DATA = "AppLocalConfig:NumberOfDaysToRefreshSermonData";
+        public const string NUMBER_OF_DAYS_TO_REFRESH_GENERAL_HIS_SONG_DATA = "AppLocalConfig:NumberOfDaysToRefreshHistoricalGeneralSongData";
+        //public const string NUMBER_OF_DAYS_TO_REFRESH_PLAN_SONG_DATA = "AppLocalConfig:NumberOfDaysToRefreshPlanSongData";
+        public const string NUMBER_OF_DAYS_TO_REFRESH_HIS_SERMON_DATA = "AppLocalConfig:NumberOfDaysToRefreshHistoricalSermonData";
         public const string NUMBER_OF_DAYS_TO_REFRESH_FUTURE_DATA = "AppLocalConfig:NumberofDaysToRefreshFutureData";
 
         // Planning Center API Configurations
@@ -46,5 +46,8 @@
         // Service Item Types in Planning Center
         public const string SERMON = "sermon";
         public const string SONG = "song";
+
+        // Local Storage folders
+        public const string FILE_PATH_SONG_AUDIO = @"C:\ExternalDatabaseFiles\SongFiles\";
     }
 }

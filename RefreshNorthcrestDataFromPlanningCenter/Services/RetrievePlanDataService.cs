@@ -1,6 +1,7 @@
 ﻿using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Services
 {
@@ -36,7 +37,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             //_log.LogInformation("Total plans available. {totalPlansAvailable}", plansInformation.CurrentRetrievedPlans.meta.total_count);
         }
 
-        public void GetDetailsForAllPlansForServiceType(AvailablePlansInformation plansInformation)
+        public async Task GetDetailsForAllPlansForServiceTypeAsync(AvailablePlansInformation plansInformation)
         {
             while (plansInformation.RemainingRecords > 0)
             {
@@ -50,7 +51,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
                     if (plansInformation.RefreshAppConfig.RefreshPlanSongData)
                     {
-                        //_retrievePlanSongDataService.GetPlanSongDataForSpecifiedPlan(plansInformation, plan);
+                        await _retrievePlanSongDataService.GetPlanSongDataForSpecifiedPlanAsync(plansInformation, plan);
                     }
 
                     if (plansInformation.RefreshAppConfig.RefreshGeneralSongData)

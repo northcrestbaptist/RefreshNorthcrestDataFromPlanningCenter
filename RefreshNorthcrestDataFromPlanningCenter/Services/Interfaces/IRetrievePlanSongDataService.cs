@@ -9,6 +9,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces
 {
     public interface IRetrievePlanSongDataService
     {
-        void GetPlanSongDataForSpecifiedPlan(AvailablePlansInformation availablePlansInformation, Plan plan);
+        Task GetPlanSongDataForSpecifiedPlanAsync(AvailablePlansInformation availablePlansInformation, Plan plan);
     }
 }

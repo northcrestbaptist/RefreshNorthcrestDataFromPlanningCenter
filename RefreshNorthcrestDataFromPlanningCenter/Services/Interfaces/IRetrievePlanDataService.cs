@@ -1,4 +1,5 @@
 ﻿using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
+using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces
 {
@@ -6,6 +7,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces
     {
         void GetAvailablePlansForServiceType(AvailablePlansInformation plansInformation);
 
-        void GetDetailsForAllPlansForServiceType(AvailablePlansInformation plansInformation);
+        Task GetDetailsForAllPlansForServiceTypeAsync(AvailablePlansInformation plansInformation);
     }
 }

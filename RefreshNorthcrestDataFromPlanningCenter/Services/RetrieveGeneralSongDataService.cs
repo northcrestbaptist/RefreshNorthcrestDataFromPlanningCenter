@@ -30,13 +30,9 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
         public void GetGeneralSongDataForSpecifiedPlan(AvailablePlansInformation plansInformation, Plan plan)
         {
-            // Change to most recent general song in northcrest database once table exists
             if (plan.attributes.sort_date >= DateTime.Now.AddDays(-plansInformation.RefreshAppConfig.NumberOfDaysToRefreshGeneralSongData)
                     && plan.attributes.sort_date < DateTime.Now.AddDays(plansInformation.RefreshAppConfig.NumberOfDaysToRefreshFutureData))
             {
-                //_log.LogInformation("--------------------------------------------------------------------------------------------------");
-                //_log.LogInformation("--------------------------------------------------------------------------------------------------");
-                //_log.LogInformation("Retrieving General Song Data for Date/Time: {dateTime}", plan.attributes.sort_date);
                 _retrieveItemsService.GetItemsForSpecifiedPlan(plansInformation, plan);
                 plansInformation.NumberofPlansUsedToRefreshGeneralSongs++;
                 foreach (Item item in plansInformation.CurrentRetrievedItems.data)
@@ -56,16 +52,12 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             Plan plan,
             Item item)
         {
-            //_log.LogInformation("--------------------------------------------------------------------------------------------------");
-            //_log.LogInformation("Song Information:");
-            
             GeneralSong generalSong = new();
             generalSong.SongId = item.relationships.song.data.id;
             //logItem(item);
-            Song song = getSongRecord(plansInformation, item);
+            Song song = _retrieveItemsService.GetSongRecord(plansInformation, item);
             //logSong(song);
             generalSong.Author = song.data.attributes.author;
-            //generalSong.CcliNumber = song.data.attributes.ccli_number;
             generalSong.Copyright = song.data.attributes.copyright;
             generalSong.LastScheduledDateTime = song.data.attributes.last_scheduled_at;
             generalSong.SongName = song.data.attributes.title;
@@ -88,38 +80,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             return generalSong;
         }
         
-        private Song getSongRecord(
-            AvailablePlansInformation plansInformation,
-            Item item
-            )
-        {
-            string getSongRecord = $"https://api.planningcenteronline.com/services/v2/songs/{item.relationships.song.data.id}";
-            //_log.LogInformation("getSongRecordUrl: {url}", getSongRecord);
-            //_log.LogInformation("Item Relationships Debug info: {relationships}", item.relationships);
-            // Retrieve song record.
-            var responseTask = plansInformation.Client.GetAsync(getSongRecord);
-            plansInformation.NumberOfRequests++;
-            responseTask.Wait();
-            var result = responseTask.Result;
-            var readTask = result.Content.ReadAsStringAsync();
-            if (plansInformation.NumberOfRequests > plansInformation.PlanningCtrConfig.RateLimit - 5)
-            {
-                //_log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
-                Thread.Sleep(1000 * plansInformation.PlanningCtrConfig.RatePeriod);
-                plansInformation.NumberOfRequests = 0;
-                readTask.Wait();
-            }
-            else
-            {
-                readTask.Wait();
-            }
-
-            string songRecordResults = readTask.Result;
-
-
-            return JsonConvert.DeserializeObject<Song>(songRecordResults);
-        }
-
         private Arrangement getArrangementRecord(
             AvailablePlansInformation plansInformation,
             Plan plan,
@@ -127,9 +87,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         {
             string getSpecificPlan = $"{plansInformation.CurrentUrl}/{plan.id}/items";
             string getArrangementUrl = $"{getSpecificPlan}/{item.id}/arrangement";
-
-            // Retrieve sermon attachments.
-
             var responseTask = plansInformation.Client.GetAsync(getArrangementUrl);
             plansInformation.NumberOfRequests++;
             responseTask.Wait();
@@ -137,7 +94,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             var readTask = result.Content.ReadAsStringAsync();
             if (plansInformation.NumberOfRequests > plansInformation.PlanningCtrConfig.RateLimit - 5)
             {
-                //_log.LogInformation("Pausing program execution to adhere to Planning Center web api request limits.");
                 Thread.Sleep(1000 * plansInformation.PlanningCtrConfig.RatePeriod);
                 plansInformation.NumberOfRequests = 0;
                 readTask.Wait();
@@ -161,7 +117,6 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             _log.LogInformation("Song Data:");
             _log.LogInformation("Song Name: {songName}", song.data.attributes.title); 
             _log.LogInformation("Author: {songAuthor}", song.data.attributes.author);
-            //_log.LogInformation("CCLI Number: {songCcliNumber}", song.data.attributes.ccli_number);
             _log.LogInformation("Copyright: {songCopyright}", song.data.attributes.copyright);
             _log.LogInformation("Last Scheduled Date/Time: {songLastScheduledDateTime}", song.data.attributes.last_scheduled_at);
             

@@ -4,6 +4,9 @@ using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
+using System.IO;
+using System;
+using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Services
 {
@@ -20,15 +23,19 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         {
             if (availablePlansInformation.RefreshAppConfig.RefreshPlanSongData)
             {
-                // Add DeletePlanSongsWithinDateRangeFromDatabase(availablePlansInformation.RefreshAppConfig.NumberOfDaysToRefreshPlanSongData);
-                // call... once developed.
-                // Add this also: availablePlansInformation.MostRecentPlanSongInfoInNorthcrestDatabase = _northcrestLocalData.GetLatestPlanSongDateTime();
+                _northcrestLocalData.DeleteAllPlan_ForSongRecordsFromDatabase();
+                // Delete all files in a directory    
+                string[] files = Directory.GetFiles(ServiceConstants.FILE_PATH_SONG_AUDIO);
+                foreach (string file in files)
+                {
+                    File.Delete(file);
+                }
             }
 
             if (availablePlansInformation.RefreshAppConfig.RefreshSermonData)
             {
                 _northcrestLocalData.DeleteSermonsWithinDateRangeFromDatabase(availablePlansInformation.RefreshAppConfig.NumberOfDaysToRefreshSermonData);
-                availablePlansInformation.MostRecentSermonInNorthcrestDatabase = _northcrestLocalData.GetLatestSermonDateTime();
+                availablePlansInformation.MostRecentSermonInNorthcrestDatabase = _northcrestLocalData.GetLatestSermonDateTime(availablePlansInformation.RefreshAppConfig.NumberOfDaysToRefreshFutureData);
             }
         }
 
@@ -36,8 +43,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         {
             if (availablePlansInformation.RefreshAppConfig.RefreshPlanSongData)
             {
-                // Add _northcrestLocalData.AddPlanSongsToDatabase(availablePlansInformation.PlanSongs);
-                // call... once developed.
+                 _northcrestLocalData.AddPlansForSongsToDatabase(availablePlansInformation.Plan_ForSongsList);
             }
 
             if (availablePlansInformation.RefreshAppConfig.RefreshSermonData)
