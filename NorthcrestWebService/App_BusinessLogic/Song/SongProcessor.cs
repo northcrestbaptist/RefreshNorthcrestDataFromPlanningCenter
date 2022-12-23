@@ -1,0 +1,81 @@
+﻿using Microsoft.EntityFrameworkCore;
+using NorthcrestWebService.App_BusinessLogic.Interfaces;
+using NorthcrestWebService.Common.FactoryInterfaces;
+using NorthcrestWebService.Models.Interfaces;
+using RefreshNorthcrestDataFromPlanningCenter.Data;
+using RefreshNorthcrestDataFromPlanningCenter.Domain;
+
+namespace NorthcrestWebService.App_BusinessLogic.Song
+{
+    public class SongProcessor : ISongProcessor
+    {
+        private readonly IClientSongFactory _clientSongFactory;
+        private readonly IClientAttachmentFactory _clientAttachmentFactory;
+        private readonly IClientPlan_ForSongsFactory _clientPlan_ForSongsFactory;
+
+        public SongProcessor(
+            IClientSongFactory clientSongFactory, 
+            IClientAttachmentFactory clientAttachmentFactory,
+            IClientPlan_ForSongsFactory clientPlan_ForSongsFactory)
+        {
+            _clientSongFactory = clientSongFactory;
+            _clientAttachmentFactory = clientAttachmentFactory;
+            _clientPlan_ForSongsFactory = clientPlan_ForSongsFactory;
+        }
+
+        public async Task<IList<IClientGeneralSong>> GetGeneralSongsAsync()
+        {
+            using var context = new NorthcrestDbContext();
+            IList<GeneralSong> generalSongs = await context.GeneralSongs
+                .OrderBy(song => song.SongName)
+                .ThenBy(song => song.ArrangementName)
+                .ToListAsync();
+            IList<IClientGeneralSong> clientGeneralSongs = await getClientGeneralSongListFromGeneralSongListAsync(generalSongs);
+            return clientGeneralSongs;
+        }
+
+        public async Task<IList<IClientPlan_ForSongs>> GetPlansWithSongsAsync()
+        {
+            using var context = new NorthcrestDbContext();
+            IList<Plan_ForSongs> plan_ForSongsList = await context.Plan_ForSongs
+                .OrderByDescending(plan => plan.PlanDateTime)
+                .ToListAsync();
+            IList<IClientPlan_ForSongs> clientPlan_ForSongs = await getClientPlan_ForSongsListFromPlan_ForSongsListAsync(plan_ForSongsList);
+            return clientPlan_ForSongs;
+        }
+
+        public async Task<byte[]> GetPdfAsync(int fileId)
+        {
+            using var context = new NorthcrestDbContext();
+            SongAttachment attachment = await context.SongAttachments.Where((x => x.SongAttachmentId == fileId)).FirstAsync();
+            return attachment.File;
+        }
+
+        private async Task<IList<IClientGeneralSong>> getClientGeneralSongListFromGeneralSongListAsync(IList<GeneralSong> generalSongs)
+        {
+            IList<IClientGeneralSong> clientGeneralSongList = _clientSongFactory.CreateClientGeneralSongList();
+            await Task.Run(() => {
+                foreach (GeneralSong song in generalSongs)
+                {
+                    IClientGeneralSong ClientGeneralSong = _clientSongFactory.CreateClientGeneralSongFromGeneralSong(song);
+                    clientGeneralSongList.Add(ClientGeneralSong);
+                }
+            });
+            return clientGeneralSongList;
+        }
+
+        private async Task<IList<IClientPlan_ForSongs>> getClientPlan_ForSongsListFromPlan_ForSongsListAsync(IList<Plan_ForSongs> plan_ForSongsList)
+        {
+            IList<IClientPlan_ForSongs> clientPlan_ForSongsList = _clientPlan_ForSongsFactory.CreateClientPlan_ForSongsList();
+            await Task.Run(() =>
+            {
+                foreach (Plan_ForSongs plan in plan_ForSongsList)
+                {
+                    IClientPlan_ForSongs clientPlan_ForSongs = _clientPlan_ForSongsFactory.CreateClientPlan_ForSongsFromPlan_ForSongs(plan);
+                    clientPlan_ForSongsList.Add(clientPlan_ForSongs);
+                }
+            });
+            return clientPlan_ForSongsList;
+        }
+    }
+}

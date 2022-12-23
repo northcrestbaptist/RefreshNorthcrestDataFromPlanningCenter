@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 
 namespace DTAS_MMWebServices_Core.Controllers
 {
-    //[Route("api/[controller]/[action]")]
-
     [ApiController, RequireHttps]
     [Route("[controller]/[action]")]
     public class SermonController : ControllerBase
@@ -46,6 +44,7 @@ namespace DTAS_MMWebServices_Core.Controllers
             }
         }
 
+        [HttpGet, RequireHttps]
         public async Task<IActionResult> GetFile([FromQuery]int fileId)
         {
             try

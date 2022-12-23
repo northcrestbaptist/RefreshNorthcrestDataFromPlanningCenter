@@ -5,5 +5,6 @@ namespace NorthcrestWebService.Common.FactoryInterfaces
     public interface IClientAttachmentFactory
     {
         IClientAttachment CreateEmptyClientAttachment();
+        IClientSongAttachment CreateEmptyClientSongAttachment();
     }
 }

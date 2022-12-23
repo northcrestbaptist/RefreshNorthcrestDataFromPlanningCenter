@@ -11,5 +11,9 @@ namespace NorthcrestWebService.Common.Factories
             return new ClientAttachment();
         }
 
+        public IClientSongAttachment CreateEmptyClientSongAttachment()
+        {
+            return new ClientSongAttachment();
+        }
     }
 }

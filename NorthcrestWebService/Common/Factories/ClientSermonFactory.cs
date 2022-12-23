@@ -43,7 +43,7 @@ namespace NorthcrestWebService.Common.Factories
                 switch(attachment.FileType)
                 {
                     case "pdf":
-                        clientAttachment.IconName = "document";
+                        clientAttachment.IconName = "newspaper";
                         break;
                     case "video":
                         clientAttachment.IconName = "videocam";
