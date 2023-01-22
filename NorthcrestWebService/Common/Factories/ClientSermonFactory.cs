@@ -2,7 +2,6 @@
 using NorthcrestWebService.Models;
 using NorthcrestWebService.Models.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Domain;
-using System.Text;
 
 namespace NorthcrestWebService.Common.Factories
 {
@@ -32,26 +31,8 @@ namespace NorthcrestWebService.Common.Factories
             clientSermon.Type = sermon.Type;
             foreach(Attachment attachment in sermon.Attachments)
             {
-                IClientAttachment clientAttachment = _clientAttachmentFactory.CreateEmptyClientAttachment();
-                clientAttachment.AttachmentId = attachment.AttachmentId;
-                clientAttachment.Url = attachment.Url;
-                clientAttachment.ContentType = attachment.ContentType;
-                clientAttachment.FileName = attachment.FileName;
-                clientAttachment.FileSize = attachment.FileSize;
-                clientAttachment.FileType = attachment.FileType;
-                clientAttachment.SermonId = attachment.SermonId;
-                switch(attachment.FileType)
-                {
-                    case "pdf":
-                        clientAttachment.IconName = "newspaper";
-                        break;
-                    case "video":
-                        clientAttachment.IconName = "videocam";
-                        break;
-                    default:
-                        clientAttachment.IconName = "help";
-                        break;
-                }
+                IClientAttachment clientAttachment = _clientAttachmentFactory.CreateClientAttachment(attachment);
+                
                 clientSermon.Attachments.Add(clientAttachment);
             }
             return clientSermon;

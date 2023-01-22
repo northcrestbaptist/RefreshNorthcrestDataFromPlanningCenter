@@ -9,12 +9,15 @@ namespace NorthcrestWebService.Common.Factories
     {
         private readonly IClientAttachmentFactory _clientAttachmentFactory;
         private readonly IClientNoteFactory _clientNoteFactory;
+        private readonly ILogger<ClientSongFactory> _logger;
 
         public ClientSongFactory(IClientAttachmentFactory clientAttachmentFactory,
-            IClientNoteFactory clientNoteFactory)
+            IClientNoteFactory clientNoteFactory,
+            ILogger<ClientSongFactory> logger)
         {
             _clientAttachmentFactory = clientAttachmentFactory;
             _clientNoteFactory = clientNoteFactory;
+            _logger = logger;
         }
 
         public IClientGeneralSong CreateEmptyClientGeneralSong()
@@ -62,44 +65,16 @@ namespace NorthcrestWebService.Common.Factories
             clientPlanSong.Sequence = planSong.Sequence;
             TimeSpan time = TimeSpan.FromSeconds(planSong.Length);
             clientPlanSong.Length = time.ToString(@"mm\:ss");
-            foreach (SongAttachment attachment in clientPlanSong.SongAttachments)
+           
+            foreach (SongAttachment attachment in planSong.SongAttachments)
             {
-                IClientSongAttachment clientAttachment = _clientAttachmentFactory.CreateEmptyClientSongAttachment();
-                clientAttachment.SongAttachmentId = attachment.SongAttachmentId;
-                clientAttachment.Url = attachment.Url;
-                clientAttachment.ContentType = attachment.ContentType;
-                clientAttachment.FileName = attachment.FileName;
-                clientAttachment.FileSize = attachment.FileSize;
-                clientAttachment.FileType = attachment.FileType;
-                clientAttachment.PlanSongId = attachment.PlanSongId;
-                switch (attachment.FileType)
-                {
-                    case "pdf":
-                        clientAttachment.IconName = "newspaper";
-                        break;
-                    case "audio":
-                        clientAttachment.IconName = "musical-notes";
-                        break;
-                    case "file":
-                        clientAttachment.IconName = "document-text";
-                        break;
-                    case "video":
-                        clientAttachment.IconName = "videocam";
-                        break;
-                    default:
-                        clientAttachment.IconName = "help";
-                        break;
-                }
+                IClientSongAttachment clientAttachment = _clientAttachmentFactory.CreateClientSongAttachment(attachment);
                 clientPlanSong.SongAttachments.Add(clientAttachment);
             }
 
-            foreach (SongNote songNote in clientPlanSong.SongNotes)
+            foreach (SongNote songNote in planSong.SongNotes)
             {
-                IClientSongNote clientNote = _clientNoteFactory.CreateEmptyClientSongNote();
-                clientNote.SongNoteId = songNote.SongNoteId;
-                clientNote.CategoryName = songNote.CategoryName;
-                clientNote.Content = songNote.Content;
-                clientNote.PlanSongId = songNote.PlanSongId;
+                IClientSongNote clientNote = _clientNoteFactory.CreateClientSongNote(songNote);
                 clientPlanSong.SongNotes.Add(clientNote);
             }
 

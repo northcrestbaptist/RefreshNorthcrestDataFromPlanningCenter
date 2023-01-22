@@ -12,15 +12,18 @@ namespace NorthcrestWebService.App_BusinessLogic.Song
         private readonly IClientSongFactory _clientSongFactory;
         private readonly IClientAttachmentFactory _clientAttachmentFactory;
         private readonly IClientPlan_ForSongsFactory _clientPlan_ForSongsFactory;
+        private readonly ILogger<SongProcessor> _logger;
 
         public SongProcessor(
             IClientSongFactory clientSongFactory, 
             IClientAttachmentFactory clientAttachmentFactory,
-            IClientPlan_ForSongsFactory clientPlan_ForSongsFactory)
+            IClientPlan_ForSongsFactory clientPlan_ForSongsFactory,
+            ILogger<SongProcessor> logger)
         {
             _clientSongFactory = clientSongFactory;
             _clientAttachmentFactory = clientAttachmentFactory;
             _clientPlan_ForSongsFactory = clientPlan_ForSongsFactory;
+            _logger = logger;
         }
 
         public async Task<IList<IClientGeneralSong>> GetGeneralSongsAsync()
@@ -38,6 +41,8 @@ namespace NorthcrestWebService.App_BusinessLogic.Song
         {
             using var context = new NorthcrestDbContext();
             IList<Plan_ForSongs> plan_ForSongsList = await context.Plan_ForSongs
+                .Include(s => s.PlanSongs).ThenInclude(s => s.SongNotes)
+                .Include(s => s.PlanSongs).ThenInclude(s => s.SongAttachments)
                 .OrderByDescending(plan => plan.PlanDateTime)
                 .ToListAsync();
             IList<IClientPlan_ForSongs> clientPlan_ForSongs = await getClientPlan_ForSongsListFromPlan_ForSongsListAsync(plan_ForSongsList);

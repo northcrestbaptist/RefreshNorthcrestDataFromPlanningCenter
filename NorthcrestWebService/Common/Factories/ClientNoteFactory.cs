@@ -1,6 +1,7 @@
 ﻿using NorthcrestWebService.Common.FactoryInterfaces;
 using NorthcrestWebService.Models;
 using NorthcrestWebService.Models.Interfaces;
+using RefreshNorthcrestDataFromPlanningCenter.Domain;
 
 namespace NorthcrestWebService.Common.Factories
 {
@@ -9,6 +10,17 @@ namespace NorthcrestWebService.Common.Factories
         public IClientSongNote CreateEmptyClientSongNote()
         {
             return new ClientSongNote();
+        }
+
+        public IClientSongNote CreateClientSongNote(SongNote songNote)
+        {
+            IClientSongNote clientSongNote = CreateEmptyClientSongNote();
+            clientSongNote.SongNoteId = songNote.SongNoteId;
+            clientSongNote.CategoryName = songNote.CategoryName;
+            clientSongNote.Content = songNote.Content;
+            clientSongNote.PlanSongId = songNote.PlanSongId;
+
+            return clientSongNote;
         }
     }
 }

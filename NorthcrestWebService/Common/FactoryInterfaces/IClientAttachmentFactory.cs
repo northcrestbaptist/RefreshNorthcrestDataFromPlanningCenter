@@ -1,4 +1,5 @@
 ﻿using NorthcrestWebService.Models.Interfaces;
+using RefreshNorthcrestDataFromPlanningCenter.Domain;
 
 namespace NorthcrestWebService.Common.FactoryInterfaces
 {
@@ -6,5 +7,8 @@ namespace NorthcrestWebService.Common.FactoryInterfaces
     {
         IClientAttachment CreateEmptyClientAttachment();
         IClientSongAttachment CreateEmptyClientSongAttachment();
+
+        IClientAttachment CreateClientAttachment(Attachment attachment);
+        IClientSongAttachment CreateClientSongAttachment(SongAttachment songAttachment);
     }
 }

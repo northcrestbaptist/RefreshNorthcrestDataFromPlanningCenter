@@ -8,10 +8,13 @@ namespace NorthcrestWebService.Common.Factories
     public class ClientPlan_ForSongsFactory : IClientPlan_ForSongsFactory
     {
         private readonly IClientSongFactory _clientSongFactory;
+        private readonly ILogger<ClientPlan_ForSongsFactory> _logger;
 
-        public ClientPlan_ForSongsFactory(IClientSongFactory clientSongFactory)
+        public ClientPlan_ForSongsFactory(
+            IClientSongFactory clientSongFactory, ILogger<ClientPlan_ForSongsFactory> logger)
         {
             _clientSongFactory = clientSongFactory;
+            _logger = logger;
         }
 
         public IClientPlan_ForSongs CreateEmptyClientPlan_ForSongs()

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
 using NorthcrestWebService.Models.Interfaces;
+using RefreshNorthcrestDataFromPlanningCenter.Domain;
 
 namespace NorthcrestWebService.Controllers
 {
@@ -9,10 +10,14 @@ namespace NorthcrestWebService.Controllers
     public class SongController : ControllerBase
     {
         private readonly ISongProcessor _songProcessor;
+        private readonly ILogger<SongController> _logger;
 
-        public SongController(ISongProcessor songProcessor)
+        public SongController(
+            ISongProcessor songProcessor,
+            ILogger<SongController> logger)
         {
             _songProcessor = songProcessor;
+            _logger = logger;
         }
 
         [HttpGet, RequireHttps]
@@ -48,7 +53,17 @@ namespace NorthcrestWebService.Controllers
                 {
                     IList<IClientPlan_ForSongs> clientPlan_ForSongsList =
                         await _songProcessor.GetPlansWithSongsAsync();
-
+                    //_logger.LogInformation("Plans For Songs Resulsts:");
+                    //foreach(IClientPlan_ForSongs plan in clientPlan_ForSongsList)
+                    //{
+                    //    _logger.LogInformation("Plan date: {date}", plan.PlanDateTime.ToString());
+                    //    _logger.LogInformation("Number of songs in plan: {number}", plan.PlanSongs.Count.ToString());
+                    //    foreach(PlanSong song in plan.PlanSongs)
+                    //    {
+                    //        _logger.LogInformation("Song Name: {name}", song.SongName);
+                    //    }
+                    //}
+                    
                     return Ok(clientPlan_ForSongsList);
                 }
                 else
