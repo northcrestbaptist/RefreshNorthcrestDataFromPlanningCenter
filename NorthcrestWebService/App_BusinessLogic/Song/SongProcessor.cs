@@ -37,23 +37,54 @@ namespace NorthcrestWebService.App_BusinessLogic.Song
             return clientGeneralSongs;
         }
 
-        public async Task<IList<IClientPlan_ForSongs>> GetPlansWithSongsAsync()
+        public async Task<IList<IClientPlan_ForSongs>> GetPlansWithoutSongsAsync()
         {
             using var context = new NorthcrestDbContext();
             IList<Plan_ForSongs> plan_ForSongsList = await context.Plan_ForSongs
-                .Include(s => s.PlanSongs).ThenInclude(s => s.SongNotes)
-                .Include(s => s.PlanSongs).ThenInclude(s => s.SongAttachments)
-                .OrderByDescending(plan => plan.PlanDateTime)
+                .Where(s => s.PlanDateTime.Date >= DateTime.Now.Date)
+                .OrderBy(plan => plan.PlanDateTime)
                 .ToListAsync();
             IList<IClientPlan_ForSongs> clientPlan_ForSongs = await getClientPlan_ForSongsListFromPlan_ForSongsListAsync(plan_ForSongsList);
             return clientPlan_ForSongs;
         }
 
-        public async Task<byte[]> GetPdfAsync(int fileId)
+        public async Task<IClientPlan_ForSongs> GetPlanWithSongsAsync(int planId)
+        {
+            using var context = new NorthcrestDbContext();
+            Plan_ForSongs plan_ForSongs = await context.Plan_ForSongs
+                .Where(p => p.PlanId == planId)
+                .Include(s => s.PlanSongs).ThenInclude(s => s.SongNotes)
+                .Include(s => s.PlanSongs).ThenInclude(s => s.SongAttachments)
+                .FirstAsync();
+            IClientPlan_ForSongs clientPlan_ForSongs = 
+                _clientPlan_ForSongsFactory.CreateClientPlan_ForSongsFromPlan_ForSongs(plan_ForSongs);
+            return clientPlan_ForSongs;
+        }
+
+        public async Task<IList<IClientPlan_ForSongs>> GetPlansWithSongsAsync()
+        {
+            using var context = new NorthcrestDbContext();
+            IList<Plan_ForSongs> plan_ForSongsList = await context.Plan_ForSongs
+                .Where(s => s.PlanDateTime.Date >= DateTime.Now.Date)
+                .Include(s => s.PlanSongs).ThenInclude(s => s.SongNotes)
+                .Include(s => s.PlanSongs).ThenInclude(s => s.SongAttachments)
+                .OrderBy(plan => plan.PlanDateTime)
+                .ToListAsync();
+            IList<IClientPlan_ForSongs> clientPlan_ForSongs = await getClientPlan_ForSongsListFromPlan_ForSongsListAsync(plan_ForSongsList);
+            return clientPlan_ForSongs;
+        }
+
+        public async Task<byte[]>GetPdfAsync(int fileId)
         {
             using var context = new NorthcrestDbContext();
             SongAttachment attachment = await context.SongAttachments.Where((x => x.SongAttachmentId == fileId)).FirstAsync();
             return attachment.File;
+        }
+
+        public async Task<byte[]>GetMp3Async(string filePath)
+        {
+            var bytes = await File.ReadAllBytesAsync(filePath);
+            return bytes;
         }
 
         private async Task<IList<IClientGeneralSong>> getClientGeneralSongListFromGeneralSongListAsync(IList<GeneralSong> generalSongs)

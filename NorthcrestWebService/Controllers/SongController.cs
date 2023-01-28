@@ -45,6 +45,54 @@ namespace NorthcrestWebService.Controllers
         }
 
         [HttpGet, RequireHttps]
+        public async Task<IActionResult> GetPlanWithSongs(int planId)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    IClientPlan_ForSongs clientPlanWithSongs =
+                        await _songProcessor.GetPlanWithSongsAsync(planId);
+
+                    return Ok(clientPlanWithSongs);
+                }
+                else
+                {
+                    return BadRequest(ModelState);
+                }
+            }
+            catch (Exception ex)
+            {
+                // TODO Add error logging.
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
+
+        [HttpGet, RequireHttps]
+        public async Task<IActionResult> GetPlansWithoutSongs()
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    IList<IClientPlan_ForSongs> clientPlan_ForSongsList =
+                        await _songProcessor.GetPlansWithoutSongsAsync();
+
+                    return Ok(clientPlan_ForSongsList);
+                }
+                else
+                {
+                    return BadRequest(ModelState);
+                }
+            }
+            catch (Exception ex)
+            {
+                // TODO Add error logging.
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
+
+        [HttpGet, RequireHttps]
         public async Task<IActionResult> GetPlansForSongs()
         {
             try
@@ -52,17 +100,7 @@ namespace NorthcrestWebService.Controllers
                 if (ModelState.IsValid)
                 {
                     IList<IClientPlan_ForSongs> clientPlan_ForSongsList =
-                        await _songProcessor.GetPlansWithSongsAsync();
-                    //_logger.LogInformation("Plans For Songs Resulsts:");
-                    //foreach(IClientPlan_ForSongs plan in clientPlan_ForSongsList)
-                    //{
-                    //    _logger.LogInformation("Plan date: {date}", plan.PlanDateTime.ToString());
-                    //    _logger.LogInformation("Number of songs in plan: {number}", plan.PlanSongs.Count.ToString());
-                    //    foreach(PlanSong song in plan.PlanSongs)
-                    //    {
-                    //        _logger.LogInformation("Song Name: {name}", song.SongName);
-                    //    }
-                    //}
+                        await _songProcessor.GetPlansWithoutSongsAsync();
                     
                     return Ok(clientPlan_ForSongsList);
                 }
@@ -86,6 +124,22 @@ namespace NorthcrestWebService.Controllers
                 byte[] file = await _songProcessor.GetPdfAsync(fileId);
                 Stream stream = new MemoryStream(file);
                 return new FileStreamResult(stream, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                // TODO Add error logging.
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
+
+        [HttpGet, RequireHttps]
+        public async Task<IActionResult> GetMp3([FromQuery] string filePath)
+        {
+            try
+            {
+                byte[] song = await _songProcessor.GetMp3Async(filePath);
+                Stream stream = new MemoryStream(song);
+                return new FileStreamResult(stream, "audio/mpeg");
             }
             catch (Exception ex)
             {
