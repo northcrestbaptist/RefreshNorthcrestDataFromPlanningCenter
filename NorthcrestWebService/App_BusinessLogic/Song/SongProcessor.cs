@@ -53,7 +53,9 @@ namespace NorthcrestWebService.App_BusinessLogic.Song
             using var context = new NorthcrestDbContext();
             Plan_ForSongs plan_ForSongs = await context.Plan_ForSongs
                 .Where(p => p.PlanId == planId)
+                .AsSplitQuery()
                 .Include(s => s.PlanSongs).ThenInclude(s => s.SongNotes)
+                .AsSplitQuery()
                 .Include(s => s.PlanSongs).ThenInclude(s => s.SongAttachments)
                 .FirstAsync();
             IClientPlan_ForSongs clientPlan_ForSongs = 
