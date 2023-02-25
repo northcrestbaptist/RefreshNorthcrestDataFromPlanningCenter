@@ -12,6 +12,7 @@ using Serilog.Sinks.Email;
 using System;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromPlanningCenter
@@ -97,7 +98,21 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                     .CreateLogger();
                 Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
 
-                Log.Logger.Information("Application Starting");
+                Log.Logger.Information("Application Starting...");
+                Log.Logger.Information("The Northcrest Data Refresh app will execute in 20 seconds.");
+                Log.Logger.Information("Please close this app immediately if you started by mistake.");
+                Log.Logger.Information("Once the 20 seconds elapses and the processing begins, you must allow the app to run to its conclusion.");
+                Thread.Sleep(10000);
+                Log.Logger.Information("10 second count down beginning...");
+                for (int i = 10; i > -1; i--)
+                {
+                    Thread.Sleep(1000);
+                    Log.Logger.Information("{countdown}...", i);
+                }
+                Log.Logger.Information("Application Liftoff!!!");
+                Log.Logger.Information("You must not stop the application at this point!");
+                Log.Logger.Information("You must allow the execution to run to its completion!");
+                Thread.Sleep(3000);
                 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
                 var host = Host.CreateDefaultBuilder()
                     .ConfigureServices((context, services) =>
