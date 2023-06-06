@@ -383,9 +383,13 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             {
                 newFileName = "originalFileNameWasInvalid";
             }
-            else if (originalFileName.Contains('?'))
+            if (originalFileName.Contains('?'))
             {
                 newFileName = originalFileName.Replace('?', '-');
+            }
+            if (originalFileName.Contains('&'))
+            {
+                newFileName = originalFileName.Replace('&', '-');
             }
 
             return newFileName;

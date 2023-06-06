@@ -89,10 +89,10 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                     //.WriteTo.Console()
                     // Once you need Network Credentials, the WriteTo.Email configuration cannot be included 
                     // in the appconfig.
-                    .WriteTo.Email(mediaEmailConnectionInfo, batchPostingLimit: 100,
-                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
-                    .WriteTo.Email(lauraEmailConnectionInfo, batchPostingLimit: 100,
-                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    //.WriteTo.Email(mediaEmailConnectionInfo, batchPostingLimit: 100,
+                    // restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    //.WriteTo.Email(lauraEmailConnectionInfo, batchPostingLimit: 100,
+                    // restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
                     .WriteTo.Email(richieEmailConnectionInfo, batchPostingLimit: 100,
                      restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
                     .CreateLogger();

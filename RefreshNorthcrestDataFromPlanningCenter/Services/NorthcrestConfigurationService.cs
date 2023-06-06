@@ -37,7 +37,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
         {
             return availablePlansInformation.RefreshAppConfig.RefreshGeneralSongData
                 || availablePlansInformation.RefreshAppConfig.RefreshPlanSongData
-                || availablePlansInformation.RefreshAppConfig.RefreshPlanSongData;
+                || availablePlansInformation.RefreshAppConfig.RefreshSermonData;
         }
 
         public void LogLocalAppConfigurationInstructions()
