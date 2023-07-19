@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
+using NorthcrestWebService.Models;
 using NorthcrestWebService.Models.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using System.Drawing.Text;
+using System.IO.Compression;
 
 namespace NorthcrestWebService.Controllers
 {
@@ -140,6 +143,42 @@ namespace NorthcrestWebService.Controllers
                 byte[] song = await _songProcessor.GetMp3Async(filePath);
                 Stream stream = new MemoryStream(song);
                 return new FileStreamResult(stream, "audio/mpeg");
+            }
+            catch (Exception ex)
+            {
+                // TODO Add error logging.
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
+
+        [HttpGet, RequireHttps]
+        public async Task<IActionResult> GetSongsZipFile([FromHeader] string[] songFileNameList)
+        {
+            string songDirectory = @"C:\ExternalDatabaseFiles\SongFiles\";
+            try
+            {
+                using (var outStream = new MemoryStream())
+                {
+                    using (var archive = new ZipArchive(outStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var file in songFileNameList)
+                        {
+                            var fileInArchive = archive.CreateEntry(file, CompressionLevel.Optimal);
+                            using (var entryStream = fileInArchive.Open())
+                            {
+                                using (var fileCompressionStream =
+                                    new MemoryStream(System.IO.File.ReadAllBytes(songDirectory + file)))
+                                {
+                                    await fileCompressionStream.CopyToAsync(entryStream);
+                                }
+                            }
+                        }
+                    }
+
+                    outStream.Position = 0;
+
+                    return File(outStream.ToArray(), "application/zip", "songFiles.zip");
+                }
             }
             catch (Exception ex)
             {

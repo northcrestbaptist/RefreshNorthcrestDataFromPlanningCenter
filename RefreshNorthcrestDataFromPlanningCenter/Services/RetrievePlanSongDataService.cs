@@ -386,10 +386,16 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             if (originalFileName.Contains('?'))
             {
                 newFileName = originalFileName.Replace('?', '-');
+                originalFileName = newFileName;
             }
             if (originalFileName.Contains('&'))
             {
                 newFileName = originalFileName.Replace('&', '-');
+                originalFileName = newFileName;
+            }
+            if (originalFileName.Contains(','))
+            {
+                newFileName = originalFileName.Replace(',', '-');
             }
 
             return newFileName;

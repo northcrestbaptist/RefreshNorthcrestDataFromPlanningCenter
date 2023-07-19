@@ -30,12 +30,10 @@ namespace DTAS_MMWebServices_Core.Controllers
 
         [HttpGet, RequireHttps]//, Authorize(Roles = "deacon,mediaTeam")]
         [RequiredScopeOrAppPermission(
-            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"//,
-            //RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"
         )]
         public async Task<IActionResult> GetSermons()
         {
-            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
             //_log.LogInformation("User Claims:{claims}", User.Claims);
             //_log.LogInformation("User Claims:{claims}", User.Claims.Where(c => c.Type == ClaimTypes.Role).ToList());
             //_log.LogInformation("mediaTeam? {answer}", User.IsInRole("mediaTeam"));
@@ -63,14 +61,11 @@ namespace DTAS_MMWebServices_Core.Controllers
             }
         }
 
-        [HttpGet, RequireHttps/*, Authorize(Policy = "UserCanViewSermonNotes")*/]
+        [HttpGet, RequireHttps]
         [RequiredScopeOrAppPermission(
-            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"//,
-                                                                  //RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
-        )]
+            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"       )]
         public async Task<IActionResult> GetFile([FromQuery] int fileId)
         {
-            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
             try
             {
                 byte[] file = await _sermonProcessor.GetFileAsync(fileId);

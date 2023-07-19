@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web.Resource;
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
 using NorthcrestWebService.Models.Interfaces;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using System.IO.Compression;
 
 namespace NorthcrestWebService.Controllers
 {
@@ -26,12 +26,10 @@ namespace NorthcrestWebService.Controllers
 
         [HttpGet, RequireHttps]
         [RequiredScopeOrAppPermission(
-            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"//,
-                                                                  //RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"
         )]
         public async Task<IActionResult> GetGeneralSongs()
         {
-            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
             try
             {
                 if (ModelState.IsValid)
@@ -55,12 +53,10 @@ namespace NorthcrestWebService.Controllers
 
         [HttpGet, RequireHttps]
         [RequiredScopeOrAppPermission(
-            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"//,
-                                                                  //RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"
         )]
         public async Task<IActionResult> GetPlanWithSongs(int planId)
         {
-            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
             try
             {
                 if (ModelState.IsValid)
@@ -84,12 +80,10 @@ namespace NorthcrestWebService.Controllers
 
         [HttpGet, RequireHttps]
         [RequiredScopeOrAppPermission(
-            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"//,
-                                                                  //RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"
         )]
         public async Task<IActionResult> GetPlansWithoutSongs()
         {
-            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
             try
             {
                 if (ModelState.IsValid)
@@ -113,12 +107,10 @@ namespace NorthcrestWebService.Controllers
 
         [HttpGet, RequireHttps]
         [RequiredScopeOrAppPermission(
-            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"//,
-                                                                  //RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"
         )]
         public async Task<IActionResult> GetPlansForSongs()
         {
-            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
             try
             {
                 if (ModelState.IsValid)
@@ -142,12 +134,10 @@ namespace NorthcrestWebService.Controllers
 
         [HttpGet, RequireHttps]
         [RequiredScopeOrAppPermission(
-            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"//,
-                                                                  //RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"
         )]
         public async Task<IActionResult> GetPdf([FromQuery] int fileId)
         {
-            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
             try
             {
                 byte[] file = await _songProcessor.GetPdfAsync(fileId);
@@ -163,17 +153,55 @@ namespace NorthcrestWebService.Controllers
 
         [HttpGet, RequireHttps]
         [RequiredScopeOrAppPermission(
-            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"//,
-                                                                  //RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"
         )]
         public async Task<IActionResult> GetMp3([FromQuery] string filePath)
         {
-            //HttpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
             try
             {
                 byte[] song = await _songProcessor.GetMp3Async(filePath);
                 Stream stream = new MemoryStream(song);
                 return new FileStreamResult(stream, "audio/mpeg");
+            }
+            catch (Exception ex)
+            {
+                // TODO Add error logging.
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
+
+
+        [HttpGet, RequireHttps]
+        [RequiredScopeOrAppPermission(
+            RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"
+        )]
+        public async Task<IActionResult> GetSongsZipFile([FromHeader] string[] songFileNameList)
+        {
+            string songDirectory = @"C:\ExternalDatabaseFiles\SongFiles\";
+            try
+            {
+                using (var outStream = new MemoryStream())
+                {
+                    using (var archive = new ZipArchive(outStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var file in songFileNameList)
+                        {
+                            var fileInArchive = archive.CreateEntry(file, CompressionLevel.Optimal);
+                            using (var entryStream = fileInArchive.Open())
+                            {
+                                using (var fileCompressionStream =
+                                    new MemoryStream(System.IO.File.ReadAllBytes(songDirectory + file)))
+                                {
+                                    await fileCompressionStream.CopyToAsync(entryStream);
+                                }
+                            }
+                        }
+                    }
+
+                    outStream.Position = 0;
+
+                    return File(outStream.ToArray(), "application/zip", "songFiles.zip");
+                }
             }
             catch (Exception ex)
             {
