@@ -175,7 +175,7 @@ namespace NorthcrestWebService.Controllers
         [RequiredScopeOrAppPermission(
             RequiredScopesConfigurationKey = "AzureAD:Scopes:Read"
         )]
-        public async Task<IActionResult> GetSongsZipFile([FromHeader] string[] songFileNameList)
+        public async Task<IActionResult> GetSongsZipFile([FromHeader] string[] songPathList)
         {
             string songDirectory = @"C:\ExternalDatabaseFiles\SongFiles\";
             try
@@ -184,7 +184,7 @@ namespace NorthcrestWebService.Controllers
                 {
                     using (var archive = new ZipArchive(outStream, ZipArchiveMode.Create, true))
                     {
-                        foreach (var file in songFileNameList)
+                        foreach (var file in songPathList)
                         {
                             var fileInArchive = archive.CreateEntry(file, CompressionLevel.Optimal);
                             using (var entryStream = fileInArchive.Open())
@@ -205,7 +205,7 @@ namespace NorthcrestWebService.Controllers
             }
             catch (Exception ex)
             {
-                // TODO Add error logging.
+                _logger.LogError("AN ERROR OCCURRED: {error}", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError, ex);
             }
         }

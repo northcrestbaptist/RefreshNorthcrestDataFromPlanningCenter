@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32519.379
@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBC.IDP", "NBC.IDP\NBC.IDP.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBC.Authorization", "NBC.Authorization\NBC.Authorization.csproj", "{B4696D66-0679-4EE7-9A6C-B672ECCFE436}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefreshNorthcrestDataFromFellowshipOne", "RefreshNorthcrestDataFromFellowshipeOne\RefreshNorthcrestDataFromFellowshipOne.csproj", "{153C7DBC-BD33-4346-B328-D00014BCF074}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RefreshNorthcrestDataFromFellowshipOne", "RefreshNorthcrestDataFromFellowshipeOne\RefreshNorthcrestDataFromFellowshipOne.csproj", "{153C7DBC-BD33-4346-B328-D00014BCF074}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

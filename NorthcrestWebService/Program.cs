@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Web;
-using NBC.Authorization;
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
 using NorthcrestWebService.App_BusinessLogic.ManifestUnit;
 using NorthcrestWebService.App_BusinessLogic.Song;
@@ -25,12 +22,12 @@ builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
 builder.Services.AddControllers()
-    .AddJsonOptions(opts =>
-    {
-         // The below option will maintain the case of the properties during serialization.
-         // I determined that I don't need this on the client.
-        //opts.JsonSerializerOptions.PropertyNamingPolicy = null;
+    .AddNewtonsoftJson(options => {
+        // send back a ISO date
+        var settings = options.SerializerSettings;
+        settings.DateFormatHandling = Newtonsoft.Json.DateFormatHandling.IsoDateFormat;
     });
+
 builder.Services.AddScoped<ISermonProcessor, SermonProcessor>()
     .AddScoped<IClientAttachmentFactory, ClientAttachmentFactory>()
     .AddScoped<IClientSermonFactory, ClientSermonFactory>()
