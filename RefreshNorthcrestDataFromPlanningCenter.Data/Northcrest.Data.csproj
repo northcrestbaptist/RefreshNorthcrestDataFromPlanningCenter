@@ -10,6 +10,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RefreshNorthcrestDataFromPlanningCenter.Domain\RefreshNorthcrestDataFromPlanningCenter.Domain.csproj" />
+    <ProjectReference Include="..\RefreshNorthcrestDataFromPlanningCenter.Domain\Northcrest.Domain.csproj" />
   </ItemGroup>
 </Project>

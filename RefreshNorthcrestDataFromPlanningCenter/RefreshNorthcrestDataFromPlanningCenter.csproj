@@ -23,8 +23,8 @@
     <Folder Include="Models\Northcrest\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RefreshNorthcrestDataFromPlanningCenter.Data\RefreshNorthcrestDataFromPlanningCenter.Data.csproj" />
-    <ProjectReference Include="..\RefreshNorthcrestDataFromPlanningCenter.Domain\RefreshNorthcrestDataFromPlanningCenter.Domain.csproj" />
+    <ProjectReference Include="..\RefreshNorthcrestDataFromPlanningCenter.Data\Northcrest.Data.csproj" />
+    <ProjectReference Include="..\RefreshNorthcrestDataFromPlanningCenter.Domain\Northcrest.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">
