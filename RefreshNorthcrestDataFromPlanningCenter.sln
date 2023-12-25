@@ -4,9 +4,9 @@ VisualStudioVersion = 17.2.32519.379
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RefreshNorthcrestDataFromPlanningCenter", "RefreshNorthcrestDataFromPlanningCenter\RefreshNorthcrestDataFromPlanningCenter.csproj", "{3877C78F-8DA5-4228-BB7C-B821498742D2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RefreshNorthcrestDataFromPlanningCenter.Domain", "RefreshNorthcrestDataFromPlanningCenter.Domain\RefreshNorthcrestDataFromPlanningCenter.Domain.csproj", "{5C2E3B14-3311-48A1-B3AE-401B027B6504}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Northcrest.Domain", "RefreshNorthcrestDataFromPlanningCenter.Domain\Northcrest.Domain.csproj", "{5C2E3B14-3311-48A1-B3AE-401B027B6504}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RefreshNorthcrestDataFromPlanningCenter.Data", "RefreshNorthcrestDataFromPlanningCenter.Data\RefreshNorthcrestDataFromPlanningCenter.Data.csproj", "{F148D091-2227-46E4-8314-93776AB8A355}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Northcrest.Data", "RefreshNorthcrestDataFromPlanningCenter.Data\Northcrest.Data.csproj", "{F148D091-2227-46E4-8314-93776AB8A355}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NorthcrestWebService", "NorthcrestWebService\NorthcrestWebService.csproj", "{37C5E361-A6FA-4E77-A963-386386FF9129}"
 EndProject
