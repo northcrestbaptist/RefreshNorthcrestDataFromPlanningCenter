@@ -3,21 +3,22 @@
     public class ServiceConstants
     {
         // Local App Configurations
-        public const string REFRESH_PERSONNEL_DATA = "AppLocalConfig:RefreshPersonnelData";
+        public const string APICONFIG_REFRESH_PERSONNEL_DATA = "AppLocalConfig:RefreshPersonnelData";
         //public const string REFRESH_GENERAL_SONG_DATA = "AppLocalConfig:RefreshGeneralSongData";
         //public const string REFRESH_PLAN_SONG_DATA = "AppLocalConfig:RefreshPlanSongData";
         //public const string REFRESH_SERMON_DATA = "AppLocalConfig:RefreshSermonData";
-        //public const string NUMBER_OF_DAYS_TO_REFRESH_GENERAL_HIS_SONG_DATA = "AppLocalConfig:NumberOfDaysToRefreshHistoricalGeneralSongData";
+        public const string APICONFIG_NUMBER_OF_DAYS_TO_REFRESH_PERSONNEL_DATA = "AppLocalConfig:NumberOfDaysToRefreshPersonnelData";
         //public const string NUMBER_OF_DAYS_TO_REFRESH_PLAN_SONG_DATA = "AppLocalConfig:NumberOfDaysToRefreshPlanSongData";
         //public const string NUMBER_OF_DAYS_TO_REFRESH_HIS_SERMON_DATA = "AppLocalConfig:NumberOfDaysToRefreshHistoricalSermonData";
         //public const string NUMBER_OF_DAYS_TO_REFRESH_FUTURE_DATA = "AppLocalConfig:NumberofDaysToRefreshFutureData";
 
         // Fellowship One API Configurations
-        //public const string RATE_LIMIT_REQUEST = "PlanningCenter:RateLimit";
-        //public const string RATE_PERIOD_REQUEST = "PlanningCenter:RatePeriod";
-        //public const string APP_ID = "PlanningCenter:appID";
-        //public const string SECRET = "PlanningCenter:secret";
-        //public const string BASIC = "PlanningCenter:Basic";
+        public const string APICONFIG_APP_ID = "FellowshipOne:appID";
+        public const string APICONFIG_SECRET = "FellowshipOne:secret";
+        public const string APICONFIG_TOKEN_TYPE = "FellowshipOne:TokenType";
+        public const string APICONFIG_TOKEN_VALUE = "FellowshipOne:TokenValue";
+        public const string APICONFIG_MEDIA_TYPE = "FellowshipOne:MediaType";
+
 
         // Email
         public const string EMAIL_FROM = "Email:FromEmail";
@@ -32,7 +33,13 @@
         public const string EMAIL_SERVER_SSL = "Email:ServerSsl";
 
         // Fellowship One URLs
-        //public const string SUNDAY_MORNING_PLANS_URL_CONFIG = "Url:SundayMorningPlans";
+        public const string URI_BASE_URL = "Uri:BaseUrl";
+        public const string URI_PEOPLE_ALL_WITH_ADDRESSES_COMMUNICATIONS_ATTRIBUTES
+            = "Uri:PeopleAllWithAddressesCommunicationsAttributes";
+        public const string URI_REQUIREMENTS_SEARCH = "Uri:RequirementsSearch";
+        public const string URI_PEOPLE_SEARCH = "Uri:PeopleSearch";
+        public const string URI_HOUSEHOLDS_SEARCH = "Uri:HouseholdsSearch";
+        public const string TEST_URI = "Uri:TestUri";
         //public const string SUNDAY_EVENING_PLANS_URL_CONFIG = "Url:SundayEveningPlans";
         //public const string SPECIAL_PLANS_URL_CONFIG = "Url:SpecialPlans";
 

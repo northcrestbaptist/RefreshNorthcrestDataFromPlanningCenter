@@ -23,110 +23,111 @@ namespace RefreshNorthcrestDataFromFellowshipOne.Services
             _config = config;
         }
 
-        public void SetConfiguration(AvailablePlansInformation availablePlansInfo)
+        public void SetConfiguration(FellowshipOneInformation fellowshipOneInfo)
         {
-            availablePlansInfo.RefreshAppConfig = LoadLocalAppConfigurations();
-            availablePlansInfo.Client.DefaultRequestHeaders.Authorization = LoadClientConfiguration();
-            //availablePlansInfo.PlanUrlList = LoadUrls();
-            //availablePlansInfo.PlanTypeList = LoadPlanTypes();
-            availablePlansInfo.PlanningCtrConfig = LoadFellowshipOneConfiguration(availablePlansInfo);
-            availablePlansInfo.NumberOfRequests++;
+            fellowshipOneInfo.RefreshAppConfig = LoadLocalAppConfigurations();
+            LoadClientConfiguration(fellowshipOneInfo.Client);
+            LoadUris(fellowshipOneInfo);
         }
 
-        public bool IsAnythingConfiguredToRefresh(AvailablePlansInformation availablePlansInformation)
+        public bool IsAnythingConfiguredToRefresh(FellowshipOneInformation fellowshipOneInfo)
         {
-            return availablePlansInformation.RefreshAppConfig.RefreshPersonnelData;
-                //|| availablePlansInformation.RefreshAppConfig.RefreshPlanSongData
-                //|| availablePlansInformation.RefreshAppConfig.RefreshSermonData;
+            return fellowshipOneInfo.RefreshAppConfig.RefreshPersonnelData;
         }
 
         public void LogLocalAppConfigurationInstructions()
         {
             _log.LogInformation("{configInstructions}", "Configuration Instructions:");
-            _log.LogInformation("The app refresh configuration can be changed in: {configLocation}", "C:\\RefreshNorthcrestDatabase\\appsettings.json.");
+            _log.LogInformation("The app refresh configuration can be changed in: {configLocation}", "C:\\RefreshNorthcrestDatabase\\FellowshipOne\\appsettings.json.");
             _log.LogInformation("The following values can be set to {true} or {false} to enable each refresh: " +
-                "{RefreshPersonnelData}", true, false, ServiceConstants.REFRESH_PERSONNEL_DATA);
-            //_log.LogInformation("The following values can be set to a number to set the number of days to refresh: " +
-            //    "{NumberOfDaysToRefreshGeneralSongData}, {NumberOfDaysToRefreshSermonData}, and {NumberOfDaysToRefreshFutureData}",
-            //    ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_GENERAL_HIS_SONG_DATA, ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_HIS_SERMON_DATA,
-            //    ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_FUTURE_DATA);
-            //_log.LogInformation("The number of days to refresh historical songs data from each plan is permanently set to 1 day in the past. " +
-            //    "This data includes pdf and mp3 files for each song and can take up a large amount disk space cumulatively. ");
+                "{RefreshPersonnelData}", true, false, ServiceConstants.APICONFIG_REFRESH_PERSONNEL_DATA);
+       }
+
+        private void LoadClientConfiguration(HttpClient client)
+        {
+            string? baseUrl = _config.GetValue<string>(ServiceConstants.URI_BASE_URL);
+            string? appId = _config.GetValue<string>(ServiceConstants.APICONFIG_APP_ID);
+            string? secret = _config.GetValue<string>(ServiceConstants.APICONFIG_SECRET);
+            string? tokenType = _config.GetValue<string>(ServiceConstants.APICONFIG_TOKEN_TYPE);
+            string? tokenValue = _config.GetValue<string>(ServiceConstants.APICONFIG_TOKEN_VALUE);
+            string? mediaType = _config.GetValue<string>(ServiceConstants.APICONFIG_MEDIA_TYPE);
+
+            if (!String.IsNullOrEmpty(baseUrl))
+            {
+                client.BaseAddress = new Uri(baseUrl);
+            }
+            else
+            {
+                _log.LogError("Unable to acquire baseUrl from the app configuration file for accessing the Fellowship One web serice.");
+                throw new ArgumentNullException(nameof(baseUrl));
+            }
+
+
+            if (!String.IsNullOrEmpty(appId) && !String.IsNullOrEmpty(secret))
+            {
+                client.DefaultRequestHeaders.Add(appId, secret);
+            }
+            else
+            {
+                _log.LogError("Unable to acquire appID and secrent from the app configuration file for accessing the Fellowship One web serice.");
+                if (!String.IsNullOrEmpty(appId)) throw new ArgumentNullException(nameof(appId));
+                else throw new ArgumentNullException(nameof(secret));
+            }
+
+            if (!String.IsNullOrEmpty(tokenType) && !String.IsNullOrEmpty(tokenValue))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, tokenValue);
+            }
+            else
+            {
+                _log.LogError("Unable to acquire tokenType and tokenValue from the app configuration file for accessing the Fellowship One web serice.");
+                if (!String.IsNullOrEmpty(tokenType)) throw new ArgumentNullException(nameof(tokenType));
+                else throw new ArgumentNullException(nameof(tokenValue));
+            }
+
+            if (!String.IsNullOrEmpty(mediaType))
+            {
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(mediaType));//ACCEPT header
+            }
+            else
+            {
+                _log.LogError("Unable to acquire mediaType from the app configuration file for accessing the Fellowship One web serice.");
+                throw new ArgumentNullException(nameof(mediaType));
+            }
         }
 
-        private AuthenticationHeaderValue LoadClientConfiguration()
+        private void LoadUris(FellowshipOneInformation fellowshipOneInfo)
         {
-            //string appID = _config.GetValue<string>(ServiceConstants.APP_ID);
-            //string secret = _config.GetValue<string>(ServiceConstants.SECRET);
-            //string basic = _config.GetValue<string>(ServiceConstants.BASIC);
-            //var authenticationString = $"{appID}:{secret}";
-            //var base64EncodedAuthenticationString = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(authenticationString));
-            //return new AuthenticationHeaderValue(basic, base64EncodedAuthenticationString);
-            return new AuthenticationHeaderValue("");
-        }
+            string? getAllPeopleApi = _config.GetValue<string>(ServiceConstants.URI_PEOPLE_ALL_WITH_ADDRESSES_COMMUNICATIONS_ATTRIBUTES);
+            string? getPersonBackgroundInvestigationApi = _config.GetValue<string>(ServiceConstants.URI_REQUIREMENTS_SEARCH);
 
-        private string[] LoadUrls()
-        {
-            string[] planUrlList = new string[3];
-            //string sundayMorningPlansUrl = _config.GetValue<string>(ServiceConstants.SUNDAY_MORNING_PLANS_URL_CONFIG);
-            //string sundayEveningPlansUrl = _config.GetValue<string>(ServiceConstants.SUNDAY_EVENING_PLANS_URL_CONFIG);
-            //string specialPlansUrl = _config.GetValue<string>(ServiceConstants.SPECIAL_PLANS_URL_CONFIG);
-            //planUrlList[0] = sundayMorningPlansUrl;
-            //planUrlList[1] = sundayEveningPlansUrl;
-            //planUrlList[2] = specialPlansUrl;
-            return planUrlList;
-        }
-
-        private string[] LoadPlanTypes()
-        {
-            string[] planTypeList = new string[3];
-            //planTypeList[0] = ServiceConstants.SUNDAY_MORNING_SERVICE;
-            //planTypeList[1] = ServiceConstants.SUNDAY_EVENING_SERVICE;
-            //planTypeList[2] = ServiceConstants.SPECIAL_SERVICE;
-            return planTypeList;
+            if (!String.IsNullOrEmpty(getAllPeopleApi))
+            {
+                fellowshipOneInfo.GetAllPeopleApi = getAllPeopleApi;
+            }
+            else
+            {
+                _log.LogError("Unable to acquire getAllPeopleApi from the app configuration file for accessing the Fellowship One web serice.");
+                throw new ArgumentNullException(nameof(getAllPeopleApi));
+            }
+            if (!String.IsNullOrEmpty(getPersonBackgroundInvestigationApi))
+            {
+                fellowshipOneInfo.GetPersonBackgroundInvestigationInfoApiTemplate = getPersonBackgroundInvestigationApi;
+            }
+            else
+            {
+                _log.LogError("Unable to acquire getPersonBackgroundInvestigationApi from the app configuration file for accessing the Fellowship One web serice.");
+                throw new ArgumentNullException(nameof(getPersonBackgroundInvestigationApi));
+            }
         }
 
         private LocalAppConfiguration LoadLocalAppConfigurations()
         {
             LocalAppConfiguration localAppConfig = new LocalAppConfiguration();
             _log.LogInformation("Retieving local refresh configurations...");
-            localAppConfig.RefreshPersonnelData = _config.GetValue<bool>(ServiceConstants.REFRESH_PERSONNEL_DATA);
-            _log.LogInformation("Refresh General Song Data: {refresh}", localAppConfig.RefreshPersonnelData);
-            //localAppConfig.RefreshGeneralSongData = _config.GetValue<bool>(ServiceConstants.REFRESH_GENERAL_SONG_DATA);
-            //_log.LogInformation("Refresh General Song Data: {refresh}", localAppConfig.RefreshGeneralSongData);
-            //localAppConfig.RefreshPlanSongData = _config.GetValue<bool>(ServiceConstants.REFRESH_PLAN_SONG_DATA);
-            //_log.LogInformation("Refresh Plan Song Data: {refresh}", localAppConfig.RefreshPlanSongData);
-            //localAppConfig.RefreshSermonData = _config.GetValue<bool>(ServiceConstants.REFRESH_SERMON_DATA);
-            //_log.LogInformation("Refresh Sermon Data: {refresh}", localAppConfig.RefreshSermonData);
-            //localAppConfig.NumberOfDaysToRefreshGeneralSongData = _config.GetValue<int>(ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_GENERAL_HIS_SONG_DATA);
-            //_log.LogInformation("Number of days to refresh Historical General Song Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshGeneralSongData);
-            // Number of days to refresh Plan Song Data is set in the class itself on the property.
-            //_log.LogInformation("Number of days to refresh Historical Plan Song Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshPlanSongData);
-            //localAppConfig.NumberOfDaysToRefreshSermonData = _config.GetValue<int>(ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_HIS_SERMON_DATA);
-            //_log.LogInformation("Number of days to refresh Historical Sermon Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshSermonData);
-            //localAppConfig.NumberOfDaysToRefreshFutureData = _config.GetValue<int>(ServiceConstants.NUMBER_OF_DAYS_TO_REFRESH_FUTURE_DATA);
-            //_log.LogInformation("Number of days to refresh Future Data: {numberOfDays}", localAppConfig.NumberOfDaysToRefreshFutureData);
+            localAppConfig.RefreshPersonnelData = _config.GetValue<bool>(ServiceConstants.APICONFIG_REFRESH_PERSONNEL_DATA);
+            _log.LogInformation("Refresh Personnel Data: {refresh}", localAppConfig.RefreshPersonnelData);
             return localAppConfig;
         }
-
-        private FellowshipOneConfiguration LoadFellowshipOneConfiguration(AvailablePlansInformation plansInfo)
-        {
-            //string rateLimit = _config.GetValue<string>(ServiceConstants.RATE_LIMIT_REQUEST);
-            //string ratePeriod = _config.GetValue<string>(ServiceConstants.RATE_PERIOD_REQUEST);
-            FellowshipOneConfiguration configuration = new();
-            //var responseTask = plansInfo.Client.GetAsync(plansInfo.PlanUrlList[0]);
-            //responseTask.Wait();
-            //var result = responseTask.Result;
-            //int parseResult;
-            //bool parseSuccess;
-            //parseSuccess = int.TryParse(result.Headers.GetValues(rateLimit).FirstOrDefault(), out parseResult);
-            //configuration.RateLimit = parseSuccess ? parseResult : 100;
-            //_log.LogInformation("Retrieved rate limit. {rateLimit}", configuration.RateLimit);
-            //parseSuccess = int.TryParse(result.Headers.GetValues(ratePeriod).FirstOrDefault(), out parseResult);
-            //configuration.RatePeriod = parseSuccess ? parseResult : 20;
-            //_log.LogInformation("Retrieved rate period. {ratePeriod}", configuration.RatePeriod);
-            return configuration;
-        }
-
     }
 }

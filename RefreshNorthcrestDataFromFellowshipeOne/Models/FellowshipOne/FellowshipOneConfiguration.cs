@@ -2,7 +2,7 @@
 {
     public class FellowshipOneConfiguration
     {
-        public int RateLimit { get; set; }
-        public int RatePeriod { get; set; }   
+        public int? RateLimit { get; set; }
+        public int? RatePeriod { get; set; }   
     }
 }

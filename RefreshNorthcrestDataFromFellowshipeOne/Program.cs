@@ -90,8 +90,8 @@ namespace RefreshNorthcrestDataFromFellowshipOne
                     // restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
                     //.WriteTo.Email(lauraEmailConnectionInfo, batchPostingLimit: 100,
                     // restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
-                    .WriteTo.Email(richieEmailConnectionInfo, batchPostingLimit: 100,
-                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    //.WriteTo.Email(richieEmailConnectionInfo, batchPostingLimit: 100,
+                    // restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
                     .CreateLogger();
                 Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
 
@@ -103,7 +103,7 @@ namespace RefreshNorthcrestDataFromFellowshipOne
                 Log.Logger.Information("10 second count down beginning...");
                 for (int i = 10; i > -1; i--)
                 {
-                    Thread.Sleep(1000);
+                    //Thread.Sleep(1000);
                     Log.Logger.Information("{countdown}...", i);
                 }
                 Log.Logger.Information("Application Liftoff!!!");
