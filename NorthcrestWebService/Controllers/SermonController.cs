@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
 using NorthcrestWebService.Models.Interfaces;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using Northcrest.Domain.PlanningCenter;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

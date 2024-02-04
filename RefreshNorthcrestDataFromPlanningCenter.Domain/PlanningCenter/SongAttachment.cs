@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RefreshNorthcrestDataFromPlanningCenter.Domain
+namespace Northcrest.Domain.PlanningCenter
 {
-    public class Attachment
+    public class SongAttachment
     {
-        public int AttachmentId { get; set; }
+        public int SongAttachmentId { get; set; }
         public byte[] File { get; set; }
+        public string FilePath { get; set; }
         public string FileName { get; set; }
         public string FileType { get; set; }
         public string ContentType { get; set; }
@@ -18,7 +19,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Domain
         public int FileSize { get; set; }
         public string Url { get; set; }
         public bool HasPreview { get; set; }
-        public Sermon Sermon { get; set; }
-        public int SermonId { get; set; }
+        public PlanSong PlanSong { get; set; }
+        public int PlanSongId { get; set; }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Data.SqlClient.DataClassification;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using Northcrest.Domain.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Models.Local;
 using System;
 using System.Collections.Generic;

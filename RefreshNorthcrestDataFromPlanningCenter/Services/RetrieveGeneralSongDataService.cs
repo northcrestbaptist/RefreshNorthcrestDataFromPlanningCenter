@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Northcrest.Domain.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;

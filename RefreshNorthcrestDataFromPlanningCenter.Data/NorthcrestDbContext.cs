@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using Northcrest.Domain.PlanningCenter;
 using System;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Data

@@ -1,4 +1,4 @@
-﻿using RefreshNorthcrestDataFromPlanningCenter.Domain;
+﻿using Northcrest.Domain.PlanningCenter;
 
 namespace NorthcrestWebService.Models.Interfaces
 {

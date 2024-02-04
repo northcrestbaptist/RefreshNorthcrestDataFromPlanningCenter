@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Northcrest.Domain.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;
@@ -198,7 +198,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
                 await actualFileResponseTask.Result.CopyToAsync(ms);
                 file = ms.ToArray();
-                Domain.Attachment newAttachmentRecord = new Domain.Attachment();
+                Northcrest.Domain.PlanningCenter.Attachment newAttachmentRecord = new Northcrest.Domain.PlanningCenter.Attachment();
                 newAttachmentRecord.FileName = attachment.attributes.filename;
                 newAttachmentRecord.ContentType = attachment.attributes.content_type;
                 newAttachmentRecord.Downloadable = attachment.attributes.downloadable;
@@ -286,7 +286,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
                     //_log.LogInformation("Attachment Record Info:...");
                 }
                 int attachmentRecordCount = 0;
-                foreach (Domain.Attachment attachment in sermon.Attachments)
+                foreach (Northcrest.Domain.PlanningCenter.Attachment attachment in sermon.Attachments)
                 {
                     //_log.LogInformation("Attachment record {recordCount}:", ++attachmentRecordCount);
                     //_log.LogInformation("Attachment File Name: {fileName}", attachment.FileName);

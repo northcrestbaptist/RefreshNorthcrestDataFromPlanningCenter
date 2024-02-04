@@ -1,7 +1,7 @@
 ﻿using NorthcrestWebService.Common.FactoryInterfaces;
 using NorthcrestWebService.Models.Interfaces;
 using NorthcrestWebService.Models;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using Northcrest.Domain.PlanningCenter;
 
 namespace NorthcrestWebService.Common.Factories
 {

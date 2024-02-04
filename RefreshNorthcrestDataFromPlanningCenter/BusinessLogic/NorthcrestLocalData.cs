@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Northcrest.Domain.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
 using RefreshNorthcrestDataFromPlanningCenter.Data;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services;
 using Serilog;

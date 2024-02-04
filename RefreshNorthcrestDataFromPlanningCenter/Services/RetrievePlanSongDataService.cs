@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;
@@ -13,6 +12,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Northcrest.Domain.PlanningCenter;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Services
 {
@@ -312,7 +312,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
                 await actualFileResponseTask.Result.CopyToAsync(ms);
                 file = ms.ToArray();
-                Domain.SongAttachment newAttachmentRecord = new Domain.SongAttachment();
+                Northcrest.Domain.PlanningCenter.SongAttachment newAttachmentRecord = new Northcrest.Domain.PlanningCenter.SongAttachment();
                 newAttachmentRecord.FileName = attachment.attributes.filename;
                 newAttachmentRecord.ContentType = attachment.attributes.content_type;
                 newAttachmentRecord.Downloadable = attachment.attributes.downloadable;
@@ -361,7 +361,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
 
                 await actualFileResponseTask.Result.CopyToAsync(ms);
                 file = ms.ToArray();
-                Domain.SongAttachment newAttachmentRecord = new Domain.SongAttachment();
+                Northcrest.Domain.PlanningCenter.SongAttachment newAttachmentRecord = new Northcrest.Domain.PlanningCenter.SongAttachment();
                 newAttachmentRecord.FileName = attachment.attributes.filename;
                 newAttachmentRecord.ContentType = attachment.attributes.content_type;
                 newAttachmentRecord.Downloadable = attachment.attributes.downloadable;

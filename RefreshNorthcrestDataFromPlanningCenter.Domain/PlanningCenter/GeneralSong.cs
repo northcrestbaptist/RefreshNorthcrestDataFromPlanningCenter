@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RefreshNorthcrestDataFromPlanningCenter.Domain
+namespace Northcrest.Domain.PlanningCenter
 {
     public class GeneralSong
     {
