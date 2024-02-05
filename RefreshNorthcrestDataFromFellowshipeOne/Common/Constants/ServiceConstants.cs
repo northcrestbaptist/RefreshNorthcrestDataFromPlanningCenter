@@ -56,6 +56,6 @@
         //public const string SONG = "song";
 
         // Local Storage folders
-        //public const string FILE_PATH_SONG_AUDIO = @"C:\ExternalDatabaseFiles\SongFiles\";
+        public const string FILE_PATH_PERSON_IMAGE = @"C:\ExternalDatabaseFiles\ImageFiles\";
     }
 }

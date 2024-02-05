@@ -3,15 +3,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using RefreshNorthcrestDataFromFellowshipOne.Common.Constants;
 using RefreshNorthcrestDataFromFellowshipOne.Models.FellowshipOne;
 using RefreshNorthcrestDataFromFellowshipOne.Services.Interfaces;
-//using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
-//using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
-//using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
-//using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -58,7 +58,8 @@ namespace RefreshNorthcrestDataFromFellowshipOne.Services
                         await GetMainPersonDataFromFellowshipOneAsync();
                         _log.LogInformation("Completed data pull for main personnel records.");
                         _log.LogInformation("Starting data pull for backgound investigation information for each person of Northcrest Baptist Church...");
-                        await GetBackgroundInvestigationDataForEachPersonFromFellowshipOneAsync();
+                        await GetImageForEachPersonWithAnImageUri();
+                        //await GetBackgroundInvestigationDataForEachPersonFromFellowshipOneAsync();
                         _log.LogInformation("Completed data pull for each person's background investigation information.");
 
 
@@ -99,7 +100,60 @@ namespace RefreshNorthcrestDataFromFellowshipOne.Services
 
             _log.LogInformation("Total Count of dowloaded Personnel: {count}", _fellowshipOneInfo.fellowshipOnePersonDataPull.results.totalRecords);
             
+        }
 
+        private async Task GetImageForEachPersonWithAnImageUri()
+        {
+            // Delete all files in a directory    
+            string[] files = Directory.GetFiles(ServiceConstants.FILE_PATH_PERSON_IMAGE);
+            foreach (string file in files)
+            {
+                File.Delete(file);
+            }
+            int imageCount = 0;
+            foreach(Person person in _fellowshipOneInfo.fellowshipOnePersonDataPull.results.person)
+            {
+                if(!String.IsNullOrEmpty(person.imageURI))
+                {
+                    imageCount++;
+                    _log.LogInformation("Pulling image for: {name}", $"{person.lastName}, {person.firstName}");
+                    byte[] byteArray;
+                    string fileExtension;
+                    var actualFileResponseTask = _fellowshipOneInfo.Client.GetStreamAsync(person.imageURI);
+                    actualFileResponseTask.Wait();
+                    MemoryStream ms = new MemoryStream();
+                    
+
+                    await actualFileResponseTask.Result.CopyToAsync(ms);
+                    byteArray = ms.ToArray();  
+                    Image image = Image.FromStream(ms);
+
+                    _log.LogInformation("Rawformat: {format}", image.RawFormat.ToString());
+                    if (ImageFormat.Png.Equals(image.RawFormat))
+                    {
+                        fileExtension = "png";
+                    }
+                    else if (ImageFormat.Jpeg.Equals(image.RawFormat))
+                    {
+                        fileExtension = "jpeg";
+                    }
+                    else if (ImageFormat.Bmp.Equals(image.RawFormat))
+                    {
+                        fileExtension = "bmp";
+                    }
+                    else if (ImageFormat.Gif.Equals(image.RawFormat))
+                    {
+                        fileExtension = "gif";
+                    }
+                    else
+                    {
+                        fileExtension = "jpeg";
+                    }
+                    person.imageFilePath = $"{ServiceConstants.FILE_PATH_PERSON_IMAGE + person.lastName + person.firstName + person.id}.{fileExtension}";
+                    await File.WriteAllBytesAsync(person.imageFilePath, byteArray);
+                }
+            }
+            _log.LogInformation("Pulled and saved {numberOfImages} images.", imageCount);
         }
 
         private async Task GetBackgroundInvestigationDataForEachPersonFromFellowshipOneAsync()

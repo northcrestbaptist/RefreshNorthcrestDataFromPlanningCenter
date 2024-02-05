@@ -17,6 +17,7 @@ namespace RefreshNorthcrestDataFromFellowshipOne.Models.FellowshipOne
         public string? uri { get; set; }
         [JsonProperty("@imageURI")]
         public string? imageURI { get; set; }
+        public string? imageFilePath { get; set; }
         [JsonProperty("@oldID")]
         public int? oldID { get; set; }
         [JsonProperty("@iCode")]
