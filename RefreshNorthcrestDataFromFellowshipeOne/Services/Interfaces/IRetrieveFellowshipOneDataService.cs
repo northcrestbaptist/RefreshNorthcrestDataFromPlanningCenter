@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace RefreshNorthcrestDataFromFellowshipOne.Services.Interfaces
+﻿namespace RefreshNorthcrestDataFromFellowshipOne.Services.Interfaces
 {
     public interface IRetrieveFellowshipOneDataService
     {

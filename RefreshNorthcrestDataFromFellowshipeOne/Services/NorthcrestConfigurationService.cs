@@ -4,10 +4,7 @@ using RefreshNorthcrestDataFromFellowshipOne.Common.Constants;
 using RefreshNorthcrestDataFromFellowshipOne.Models.Local;
 using RefreshNorthcrestDataFromFellowshipOne.Models.FellowshipOne;
 using RefreshNorthcrestDataFromFellowshipOne.Services.Interfaces;
-using System;
-using System.Linq;
 using System.Net.Http.Headers;
-using System.Text;
 
 namespace RefreshNorthcrestDataFromFellowshipOne.Services
 {

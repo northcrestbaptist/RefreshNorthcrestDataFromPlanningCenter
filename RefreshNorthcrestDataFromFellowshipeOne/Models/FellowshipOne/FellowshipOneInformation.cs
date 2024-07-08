@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.SqlClient.DataClassification;
-using RefreshNorthcrestDataFromFellowshipOne.Models.Local;
+﻿using RefreshNorthcrestDataFromFellowshipOne.Models.Local;
 
 namespace RefreshNorthcrestDataFromFellowshipOne.Models.FellowshipOne
 {
@@ -14,6 +13,7 @@ namespace RefreshNorthcrestDataFromFellowshipOne.Models.FellowshipOne
         public string? GetPersonBackgroundInvestigationInfoApi { get; set; }
         public int? TotalRecordsPulled { get; set; }
         public FellowshipOnePersonDataPull? fellowshipOnePersonDataPull { get; set; }
-    
+        public IList<Northcrest.Domain.FellowshipOne.Person> Persons { get; set; } = new List<Northcrest.Domain.FellowshipOne.Person>();
+
     }
 }
