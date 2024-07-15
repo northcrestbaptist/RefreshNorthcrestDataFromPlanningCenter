@@ -49,7 +49,7 @@ namespace RefreshNorthcrestDataFromFellowshipOne.Services
                         await GetBackgroundInvestigationDataForEachPersonFromFellowshipOneAsync();
                         _log.LogInformation("Completed data pull for each person's background investigation information.");
                         _databaseUpdateService.RefreshDataThatWasRetrievedFromFellowshipOne(_fellowshipOneInfo);
-                        _log.LogInformation("Date refresh completed successfully.");
+                        
                     }
                     else
                     {

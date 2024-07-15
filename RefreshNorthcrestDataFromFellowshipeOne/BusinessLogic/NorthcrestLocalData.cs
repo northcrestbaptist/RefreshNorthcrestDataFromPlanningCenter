@@ -25,6 +25,7 @@ namespace RefreshNorthcrestDataFromFellowshipOne.BusinessLogic
                 addPersonToNorthcrestFromFellowshipOne(northcrestPersonnel, context);
                 context.SaveChanges();
                 _log.LogInformation("Records deleted and refreshed successfully.");
+                _log.LogInformation("Date refresh completed successfully.");
             }
             catch(Exception ex)
             {
