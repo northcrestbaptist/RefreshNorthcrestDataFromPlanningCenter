@@ -21,7 +21,7 @@
         // Email
         public const string EMAIL_FROM = "Email:FromEmail";
         public const string EMAIL_TO_MEDIA = "Email:ToMedia";
-        public const string EMAIL_TO_LAURA = "Email:ToLaura";
+        public const string EMAIL_TO_MICHAEL = "Email:ToMichael";
         public const string EMAIL_TO_RICHIE = "Email:ToRichie";
         public const string EMAIL_SERVER_ADDRESS = "Email:ServerAddress";
         public const string EMAIL_SERVER_USERID = "Email:ServerUserId";
