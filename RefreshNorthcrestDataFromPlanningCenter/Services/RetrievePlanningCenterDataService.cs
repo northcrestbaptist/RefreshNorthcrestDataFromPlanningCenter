@@ -66,7 +66,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Services
             }
             _log.LogInformation("A total of {genSongsCount} songs were refreshed to the GeneralSongs table during a search through {plansCount} service plans.",
                 _availablePlansInfo.NumberOfGeneralSongsRefreshed, _availablePlansInfo.NumberofPlansUsedToRefreshGeneralSongs);
-            _log.LogInformation("Date refresh completed successfully.");
+            
             
         }
 

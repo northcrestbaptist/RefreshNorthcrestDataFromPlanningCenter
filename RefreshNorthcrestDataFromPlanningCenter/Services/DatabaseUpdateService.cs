@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RefreshNorthcrestDataFromPlanningCenter.BusinessLogic.Interfaces;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Models.PlanningCenter;
 using RefreshNorthcrestDataFromPlanningCenter.Services.Interfaces;
 using System.IO;
 using System;
 using RefreshNorthcrestDataFromPlanningCenter.Common.Constants;
+using Northcrest.Domain.PlanningCenter;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Services
 {

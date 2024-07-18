@@ -1,5 +1,5 @@
-﻿using NorthcrestWebService.Models.Interfaces;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
+﻿using Northcrest.Domain.PlanningCenter;
+using NorthcrestWebService.Models.Interfaces;
 
 namespace NorthcrestWebService.Common.FactoryInterfaces
 {

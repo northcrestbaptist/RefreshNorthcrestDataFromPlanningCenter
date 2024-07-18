@@ -29,7 +29,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                 IConfiguration config = builder.Build();
                 string fromEmail = config.GetValue<string>(ServiceConstants.EMAIL_FROM);
                 string toMediaEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_MEDIA);
-                string toLauraEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_LAURA);
+                string toMichaelEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_MICHAEL);
                 string toRichieEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_RICHIE);
                 string emailServerAddress = config.GetValue<string>(ServiceConstants.EMAIL_SERVER_ADDRESS);
                 int emailServerPort = config.GetValue<int>(ServiceConstants.EMAIL_SERVER_PORT);
@@ -52,10 +52,10 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                     Port = emailServerPort
                 };
 
-                var lauraEmailConnectionInfo = new EmailConnectionInfo
+                var michaelEmailConnectionInfo = new EmailConnectionInfo
                 {
                     FromEmail = fromEmail,
-                    ToEmail = toLauraEmail,
+                    ToEmail = toMichaelEmail,
                     MailServer = emailServerAddress,
                     NetworkCredentials = new NetworkCredential
                     {
@@ -89,10 +89,10 @@ namespace RefreshNorthcrestDataFromPlanningCenter
                     //.WriteTo.Console()
                     // Once you need Network Credentials, the WriteTo.Email configuration cannot be included 
                     // in the appconfig.
-                    //.WriteTo.Email(mediaEmailConnectionInfo, batchPostingLimit: 100,
-                    // restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
-                    //.WriteTo.Email(lauraEmailConnectionInfo, batchPostingLimit: 100,
-                    // restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    .WriteTo.Email(mediaEmailConnectionInfo, batchPostingLimit: 100,
+                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    .WriteTo.Email(michaelEmailConnectionInfo, batchPostingLimit: 100,
+                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
                     .WriteTo.Email(richieEmailConnectionInfo, batchPostingLimit: 100,
                      restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
                     .CreateLogger();

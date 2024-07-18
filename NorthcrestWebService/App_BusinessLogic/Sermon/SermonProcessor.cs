@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
 using RefreshNorthcrestDataFromPlanningCenter.Data;
 using NorthcrestWebService.Models.Interfaces;
 using NorthcrestWebService.Common.FactoryInterfaces;
+using Northcrest.Domain.PlanningCenter;
 
 namespace NorthcrestWebService.App_BusinessLogic.ManifestUnit
 {

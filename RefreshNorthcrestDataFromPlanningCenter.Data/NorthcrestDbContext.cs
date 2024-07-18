@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using Northcrest.Domain.PlanningCenter;
 using System;
 
 namespace RefreshNorthcrestDataFromPlanningCenter.Data
@@ -24,14 +24,17 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
                     sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 10,
                         maxRetryDelay: System.TimeSpan.FromSeconds(5),
-                        errorNumbersToAdd: null);
+                        errorNumbersToAdd: null
+                        );
+                    sqlOptions.CommandTimeout(180);
+                    
                 })
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.Attachment", b =>
+            modelBuilder.Entity("Northcrest.Domain.PlanningCenter.Attachment", b =>
             {
                 b.Property<int>("AttachmentId")
                     .ValueGeneratedOnAdd()
@@ -76,7 +79,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
                 b.ToTable("Attachments");
             });
 
-            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.Sermon", b =>
+            modelBuilder.Entity("Northcrest.Domain.PlanningCenter.Sermon", b =>
             {
                 b.Property<int>("SermonId")
                     .ValueGeneratedOnAdd()
@@ -107,7 +110,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
                 b.ToTable("Sermons");
             });
 
-            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.GeneralSong", b =>
+            modelBuilder.Entity("Northcrest.Domain.PlanningCenter.GeneralSong", b =>
             {
                 b.Property<int>("Id")
                     .ValueGeneratedOnAdd()
@@ -147,7 +150,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
                 b.ToTable("GeneralSongs");
             });
 
-            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.SongAttachment", b =>
+            modelBuilder.Entity("Northcrest.Domain.PlanningCenter.SongAttachment", b =>
             {
                 b.Property<int>("SongAttachmentId")
                     .ValueGeneratedOnAdd()
@@ -191,7 +194,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
                 b.ToTable("SongAttachments");
             });
 
-            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.SongNote", b =>
+            modelBuilder.Entity("Northcrest.Domain.PlanningCenter.SongNote", b =>
             {
                 b.Property<int>("PlanSongId")
                     .ValueGeneratedOnAdd()
@@ -213,7 +216,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
                 b.ToTable("SongNotes");
             });
 
-            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.PlanSong", b =>
+            modelBuilder.Entity("Northcrest.Domain.PlanningCenter.PlanSong", b =>
             {
                 b.Property<int>("PlanSongId")
                     .ValueGeneratedOnAdd()
@@ -261,7 +264,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
                 b.ToTable("PlanSongs");
             });
 
-            modelBuilder.Entity("RefreshNorthcrestDataFromPlanningCenter.Domain.Plan_ForSongs", b =>
+            modelBuilder.Entity("Northcrest.Domain.PlanningCenter.Plan_ForSongs", b =>
             {
                 b.Property<int>("Plan_ForSongsId")
                     .ValueGeneratedOnAdd()
@@ -291,7 +294,8 @@ namespace RefreshNorthcrestDataFromPlanningCenter.Data
 
             var configuration = builder.Build();
 
-            return configuration.GetConnectionString("Northcrest_DB_ConnectionString");
+            var connectionString = configuration.GetConnectionString("PlanningCenter_DB_ConnectionString");
+            return connectionString;
         }
     }
 }

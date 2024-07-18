@@ -1,16 +1,15 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RefreshNorthcrestDataFromFellowshipOne.BusinessLogic;
+using RefreshNorthcrestDataFromFellowshipOne.BusinessLogic.Interfaces;
 using RefreshNorthcrestDataFromFellowshipOne.Common.Constants;
 using RefreshNorthcrestDataFromFellowshipOne.Services;
 using RefreshNorthcrestDataFromFellowshipOne.Services.Interfaces;
+using RefreshNorthcrestDataFromPlanningCenter.Services;
 using Serilog;
 using Serilog.Sinks.Email;
-using System;
-using System.IO;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace RefreshNorthcrestDataFromFellowshipOne
 {
@@ -26,7 +25,7 @@ namespace RefreshNorthcrestDataFromFellowshipOne
                 IConfiguration config = builder.Build();
                 string fromEmail = config.GetValue<string>(ServiceConstants.EMAIL_FROM);
                 string toMediaEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_MEDIA);
-                string toLauraEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_LAURA);
+                string toMichaelEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_MICHAEL);
                 string toRichieEmail = config.GetValue<string>(ServiceConstants.EMAIL_TO_RICHIE);
                 string emailServerAddress = config.GetValue<string>(ServiceConstants.EMAIL_SERVER_ADDRESS);
                 int emailServerPort = config.GetValue<int>(ServiceConstants.EMAIL_SERVER_PORT);
@@ -49,10 +48,10 @@ namespace RefreshNorthcrestDataFromFellowshipOne
                     Port = emailServerPort
                 };
 
-                var lauraEmailConnectionInfo = new EmailConnectionInfo
+                var michaelEmailConnectionInfo = new EmailConnectionInfo
                 {
                     FromEmail = fromEmail,
-                    ToEmail = toLauraEmail,
+                    ToEmail = toMichaelEmail,
                     MailServer = emailServerAddress,
                     NetworkCredentials = new NetworkCredential
                     {
@@ -86,10 +85,10 @@ namespace RefreshNorthcrestDataFromFellowshipOne
                     //.WriteTo.Console()
                     // Once you need Network Credentials, the WriteTo.Email configuration cannot be included 
                     // in the appconfig.
-                    //.WriteTo.Email(mediaEmailConnectionInfo, batchPostingLimit: 100,
-                    // restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
-                    //.WriteTo.Email(lauraEmailConnectionInfo, batchPostingLimit: 100,
-                    // restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    .WriteTo.Email(mediaEmailConnectionInfo, batchPostingLimit: 100,
+                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
+                    .WriteTo.Email(michaelEmailConnectionInfo, batchPostingLimit: 100,
+                     restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
                     .WriteTo.Email(richieEmailConnectionInfo, batchPostingLimit: 100,
                      restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
                     .CreateLogger();
@@ -115,15 +114,9 @@ namespace RefreshNorthcrestDataFromFellowshipOne
                     .ConfigureServices((context, services) =>
                     {
                         services.AddTransient<IRetrieveFellowshipOneDataService, RetrieveFellowshipOneDataService>();
-                        //services.AddScoped<ITransformData, TransformData>();
-                        //services.AddScoped<INorthcrestLocalData, NorthcrestLocalData>();
-                        //services.AddScoped<IRetrievePlanDataService, RetrievePlanDataService>();
-                        //services.AddScoped<IRetrieveSermonDataService, RetrieveSermonDataService>();
-                        //services.AddScoped<IRetrieveGeneralSongDataService, RetrieveGeneralSongDataService>();
-                        //services.AddScoped<IRetrievePlanSongDataService, RetrievePlanSongDataService>();
-                        //services.AddScoped<IRetrieveItemsService, RetrieveItemsService>();
+                        services.AddScoped<INorthcrestLocalData, NorthcrestLocalData>();
                         services.AddScoped<INorthcrestConfigurationService, NorthcrestConfigurationService>();
-                        //services.AddScoped<IDatabaseUpdateService, DatabaseUpdateService>();
+                        services.AddScoped<IDatabaseUpdateService, DatabaseUpdateService>();
                     })
                     .UseSerilog()
                     .Build();

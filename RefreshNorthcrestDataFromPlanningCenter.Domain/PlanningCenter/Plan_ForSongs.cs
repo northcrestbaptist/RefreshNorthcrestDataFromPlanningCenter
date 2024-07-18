@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace RefreshNorthcrestDataFromPlanningCenter.Domain
+namespace Northcrest.Domain.PlanningCenter
 {
     public class Plan_ForSongs
     {

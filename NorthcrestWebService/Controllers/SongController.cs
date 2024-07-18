@@ -2,7 +2,7 @@
 using NorthcrestWebService.App_BusinessLogic.Interfaces;
 using NorthcrestWebService.Models;
 using NorthcrestWebService.Models.Interfaces;
-using RefreshNorthcrestDataFromPlanningCenter.Domain;
+using Northcrest.Domain.PlanningCenter;
 using System.Drawing.Text;
 using System.IO.Compression;
 

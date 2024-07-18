@@ -6,6 +6,9 @@
   <ItemGroup>
     <PackageReference Include="ErikEJ.EntityFrameworkCore.DgmlBuilder" Version="6.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Planninc\" />
+  </ItemGroup>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="del obj\project.assets.json&#xD;&#xA;dotnet restore" />
   </Target>

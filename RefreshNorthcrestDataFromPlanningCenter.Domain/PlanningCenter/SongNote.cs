@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RefreshNorthcrestDataFromPlanningCenter.Domain
+namespace Northcrest.Domain.PlanningCenter
 {
     public class SongNote
     {

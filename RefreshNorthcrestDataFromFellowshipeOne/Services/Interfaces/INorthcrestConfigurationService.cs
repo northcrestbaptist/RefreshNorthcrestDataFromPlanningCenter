@@ -1,18 +1,11 @@
-﻿using RefreshNorthcrestDataFromFellowshipOne.Models.Local;
-using RefreshNorthcrestDataFromFellowshipOne.Models.FellowshipOne;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RefreshNorthcrestDataFromFellowshipOne.Models.FellowshipOne;
 
 namespace RefreshNorthcrestDataFromFellowshipOne.Services.Interfaces
 {
     public interface INorthcrestConfigurationService
     {
-        void SetConfiguration(AvailablePlansInformation availablePlansInfo);
-        bool IsAnythingConfiguredToRefresh(AvailablePlansInformation availablePlans);
+        void SetConfiguration(FellowshipOneInformation availablePlansInfo);
+        bool IsAnythingConfiguredToRefresh(FellowshipOneInformation availablePlans);
         void LogLocalAppConfigurationInstructions();
     }
 }
