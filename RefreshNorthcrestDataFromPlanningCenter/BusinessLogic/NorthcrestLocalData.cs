@@ -79,6 +79,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
             
                 context.SaveChanges();
                 _log.LogInformation("Added {numberOfSermons} sermon record(s) successfully.", sermons.Count);
+                _log.LogInformation("Sermon data refresh completed successfully.");
             }
             catch(Exception ex)
             {
@@ -100,6 +101,7 @@ namespace RefreshNorthcrestDataFromPlanningCenter.BusinessLogic
 
                 context.SaveChanges();
                 _log.LogInformation("Added {numberOfPlansForSongs} plans with song record(s) successfully.", plan_ForSongsList.Count);
+                _log.LogInformation("Songs and plans refresh completed successfully.");
             }
             catch (Exception ex)
             {
